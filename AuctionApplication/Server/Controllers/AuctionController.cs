@@ -25,13 +25,17 @@ public class AuctionController : ControllerBase
 
     [HttpPost]
     [Route("/Auction")]
-    public async Task Post([FromBody] AuctionFrontEndModel auction)
+    public async Task Post([FromBody] AuctionDto auction)
     {
-        var newAuction = new Auction();//TODO: Map
-        newAuction.Owner = new User();
-        newAuction.Owner.Nickname = "Test";
+        var newAuction = new Auction
+        {
+            Owner = new User
+            {
+                Nickname = "Test"
+            }
+        };//TODO: Map
         await _auctionRepository.AddAsync(newAuction);
     }
 }
 
-public record AuctionFrontEndModel(string NameOfProduct,string Description,decimal StartingPrice, DateTime EndInclusive);
+public record AuctionDto(string NameOfProduct,string Description,decimal StartingPrice, DateTime EndInclusive);
