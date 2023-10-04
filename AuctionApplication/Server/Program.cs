@@ -1,8 +1,12 @@
+using AuctionApplication.Database;
 using AuctionApplication.Server.Hubs;
+using AuctionApplication.Shared;
 using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
-
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 // Add services to the container.
 builder.Services.AddSignalR();
 builder.Services.AddResponseCompression(opts =>
@@ -12,6 +16,8 @@ builder.Services.AddResponseCompression(opts =>
 });
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
+builder.Services.AddScoped<DbContext,Context>();
+builder.Services.AddScoped<EfRepository<Auction>>();
 
 var app = builder.Build();
 app.UseResponseCompression();
@@ -34,7 +40,8 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-
+app.MapSwagger();
+app.UseSwaggerUI();
 app.MapRazorPages();
 app.MapControllers();
 app.MapFallbackToFile("index.html");

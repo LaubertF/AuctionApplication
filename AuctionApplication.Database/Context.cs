@@ -5,6 +5,7 @@ namespace AuctionApplication.Database;
 
 public class Context : DbContext
 {
+    #pragma warning disable CS8618 // Required by Entity Framework
     public DbSet<Auction> Auctions { get; set; }
     
     public string DbPath { get; }

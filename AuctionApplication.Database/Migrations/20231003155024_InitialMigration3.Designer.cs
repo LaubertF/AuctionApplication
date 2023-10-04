@@ -3,6 +3,7 @@ using System;
 using AuctionApplication.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AuctionApplication.Database.Migrations
 {
     [DbContext(typeof(Context))]
-    partial class ContextModelSnapshot : ModelSnapshot
+    [Migration("20231003155024_InitialMigration3")]
+    partial class InitialMigration3
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "7.0.11");
@@ -60,7 +63,7 @@ namespace AuctionApplication.Database.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("AuctionId")
+                    b.Property<int?>("AuctionId")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Base64")
@@ -102,13 +105,9 @@ namespace AuctionApplication.Database.Migrations
 
             modelBuilder.Entity("AuctionApplication.Shared.ProductImage", b =>
                 {
-                    b.HasOne("AuctionApplication.Shared.Auction", "Auction")
+                    b.HasOne("AuctionApplication.Shared.Auction", null)
                         .WithMany("ProductImages")
-                        .HasForeignKey("AuctionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Auction");
+                        .HasForeignKey("AuctionId");
                 });
 
             modelBuilder.Entity("AuctionApplication.Shared.Auction", b =>

@@ -3,6 +3,7 @@ using System;
 using AuctionApplication.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AuctionApplication.Database.Migrations
 {
     [DbContext(typeof(Context))]
-    partial class ContextModelSnapshot : ModelSnapshot
+    [Migration("20231003154656_InitialMigration2")]
+    partial class InitialMigration2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "7.0.11");
@@ -44,6 +47,10 @@ namespace AuctionApplication.Database.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("PictureBase64")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<decimal>("StartingPrice")
                         .HasColumnType("TEXT");
 
@@ -52,26 +59,6 @@ namespace AuctionApplication.Database.Migrations
                     b.HasIndex("OwnerId");
 
                     b.ToTable("Auctions");
-                });
-
-            modelBuilder.Entity("AuctionApplication.Shared.ProductImage", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("AuctionId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Base64")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AuctionId");
-
-                    b.ToTable("ProductImage");
                 });
 
             modelBuilder.Entity("AuctionApplication.Shared.User", b =>
@@ -98,22 +85,6 @@ namespace AuctionApplication.Database.Migrations
                         .IsRequired();
 
                     b.Navigation("Owner");
-                });
-
-            modelBuilder.Entity("AuctionApplication.Shared.ProductImage", b =>
-                {
-                    b.HasOne("AuctionApplication.Shared.Auction", "Auction")
-                        .WithMany("ProductImages")
-                        .HasForeignKey("AuctionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Auction");
-                });
-
-            modelBuilder.Entity("AuctionApplication.Shared.Auction", b =>
-                {
-                    b.Navigation("ProductImages");
                 });
 
             modelBuilder.Entity("AuctionApplication.Shared.User", b =>
