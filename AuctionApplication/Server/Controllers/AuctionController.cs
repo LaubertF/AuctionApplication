@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AuctionApplication.Server.Controllers;
 
+[ApiController]
+[Route("[controller]")]
 public class AuctionController : ControllerBase
 {
     
@@ -35,6 +37,14 @@ public class AuctionController : ControllerBase
             }
         };//TODO: Map
         await _auctionRepository.AddAsync(newAuction);
+    }
+    
+    [HttpPost]
+    [Route("/create")]
+    public IActionResult CreateAction([FromBody] Auction formData)
+    {
+        return Ok(formData);
+        // return BadRequest() 
     }
 }
 
