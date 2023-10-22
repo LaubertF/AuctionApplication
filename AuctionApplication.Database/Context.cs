@@ -7,6 +7,10 @@ public class Context : DbContext
 {
     #pragma warning disable CS8618 // Required by Entity Framework
     public DbSet<Auction> Auctions { get; set; }
+    public DbSet<ProductImage> ProductImages { get; set; }
+    public DbSet<User> Users { get; set; }
+    public DbSet<Bid> Bids { get; set; }
+    
     
     public string DbPath { get; }
     public Context()
@@ -21,4 +25,13 @@ public class Context : DbContext
     // special "local" folder for your platform.
     protected override void OnConfiguring(DbContextOptionsBuilder options)
         => options.UseSqlite($"Data Source={DbPath}");
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Auction>()
+            .HasOne(a => a.Owner)
+            .WithMany(u => u.Auctions)
+            .OnDelete(DeleteBehavior.Restrict);
+    }
+    
 }
