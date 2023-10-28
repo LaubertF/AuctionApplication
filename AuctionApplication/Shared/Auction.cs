@@ -25,7 +25,7 @@ public class Auction : BaseEntity
     public User Owner { get; set; } = new();
     public User Winner { get; set; } = new();
     // public List<ProductImage> ProductImages { get; set; } = new();
-    public List<String> ProductImages { get; set; } = new List<String>();
+    public List<ProductImage> ProductImages { get; set; } = new List<ProductImage>();
     public bool IsClosed { get; set; }
     [DataType(DataType.Currency)]
     [Range(0, double.MaxValue, ErrorMessage = "Buyout price cannot be negative.")]

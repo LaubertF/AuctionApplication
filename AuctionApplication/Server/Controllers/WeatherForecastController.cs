@@ -1,10 +1,13 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using AuctionApplication.Shared;
+using Microsoft.AspNetCore.Authorization;
 
 namespace AuctionApplication.Server.Controllers;
 
 [ApiController]
 [Route("[controller]")]
+[Authorize]
 public class WeatherForecastController : ControllerBase
 {
     private static readonly string[] Summaries = new[]
@@ -20,8 +23,14 @@ public class WeatherForecastController : ControllerBase
     }
 
     [HttpGet]
+
     public IEnumerable<WeatherForecast> Get()
     {
+        string userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value;
+        //get user info
+
+        User.Claims.ToList().ForEach(c => Console.WriteLine($"{c.Type} : {c.Value} : "));
+        // User.Identity?.IsAuthenticated.ToString().ToList().ForEach(c => Console.WriteLine($"{c}"));
         return Enumerable.Range(1, 5).Select(index => new WeatherForecast
             {
                 Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),

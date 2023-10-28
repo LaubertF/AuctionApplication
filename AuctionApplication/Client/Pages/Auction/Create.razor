@@ -1,5 +1,6 @@
 ﻿@page "/auction/create"
 @using AuctionApplication.Shared
+@using System.Net
 @inject HttpClient Http
 
 <h3>Create new auction</h3>
@@ -111,7 +112,7 @@
 				imageHelper = "tento obrazok je ok ";
 				await file.OpenReadStream().ReadAsync(buffer);
 				var imageDataUrl = $"data:{file.ContentType};base64,{Convert.ToBase64String(buffer)}";
-				auction.ProductImages.Add(imageDataUrl);
+				auction.ProductImages.Add(new ProductImage { Base64 = imageDataUrl});
 			}
 			
 		}
@@ -120,7 +121,9 @@
 	private async Task FormSubmitted(EditContext editContext){
 		bool formIsValid = editContext.Validate();
 		if (formIsValid){
+			Console.WriteLine(auction);
 			var response = await Http.PostAsJsonAsync("/create", auction);
+			Console.WriteLine(await Http.GetAsync("/test"));
 			if (response.IsSuccessStatusCode){
 				var responseContent = await response.Content.ReadAsStringAsync();
 				controllerResponse = responseContent;
