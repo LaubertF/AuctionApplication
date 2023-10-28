@@ -121,9 +121,8 @@
 	private async Task FormSubmitted(EditContext editContext){
 		bool formIsValid = editContext.Validate();
 		if (formIsValid){
-			Console.WriteLine(auction);
 			var response = await Http.PostAsJsonAsync("/create", auction);
-			Console.WriteLine(await Http.GetAsync("/test"));
+			Console.WriteLine(await response.Content.ReadAsStringAsync());
 			if (response.IsSuccessStatusCode){
 				var responseContent = await response.Content.ReadAsStringAsync();
 				controllerResponse = responseContent;
