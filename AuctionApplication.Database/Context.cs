@@ -25,13 +25,5 @@ public class Context : DbContext
     // special "local" folder for your platform.
     protected override void OnConfiguring(DbContextOptionsBuilder options)
         => options.UseSqlite($"Data Source={DbPath}");
-
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {
-        modelBuilder.Entity<Auction>()
-            .HasOne(a => a.Owner)
-            .WithMany(u => u.Auctions)
-            .OnDelete(DeleteBehavior.Restrict);
-    }
     
 }
