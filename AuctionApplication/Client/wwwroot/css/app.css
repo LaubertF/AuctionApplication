@@ -128,4 +128,23 @@ a, .btn-link {
     border-bottom-left-radius: 0.25rem;
 }
 
+.image-detail-cropped-div {
+    height:80vh;
+}
+
+.image-detail-cropped {
+    width:90%;
+    height:100%;
+    object-fit: fill;
+    background-repeat: no-repeat !important;
+    background-position: right top !important;
+    background-size: cover !important;
+    border-radius: 2rem;
+}
+
+.nav-pills{
+    --bs-nav-pills-link-active-bg: #1b6ec2 !important;
+}
+
+
 

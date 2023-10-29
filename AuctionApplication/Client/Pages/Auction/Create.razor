@@ -1,137 +1,159 @@
 ﻿@page "/auction/create"
 @using AuctionApplication.Shared
 @using System.Net
+@using AuctionApplication.Client.Services
 @inject HttpClient Http
+@inject NavigationManager NavigationManager
+@inject AppStateService appState
 
-<h3>Create new auction</h3>
-<div class="container">
-  <div class="row">
-    <div class="col">
-      @controllerResponse
+@if (errorMessage != null)
+{
+    <div class="d-flex justify-content-center alert alert-danger alert-dismissible fade show" role="alert">
+        @errorMessage
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
-  </div>
+}
+
+<div class="d-flex justify-content-center">
+    <h2>Create new auction</h2>
 </div>
 
-<EditForm Model=@auction OnSubmit=@FormSubmitted>
-	<DataAnnotationsValidator />	
-	<div class="container-fluid">
-		<div class="row justify-content-start">
-			<div class="col-lg-7 col-sm-12">
-				<div class="row py-1">
-					<div class="form-floating">
-						<InputText id="title" @bind-Value="@auction.NameOfProduct" class="form-control" placeholder></InputText>
-						<label for="title" class="ms-3">Title</label>
-						<ValidationMessage For="() => auction.NameOfProduct"/>
-					</div>
-				</div>
-				<div class="row py-1">
-					<div class="form-floating">
-						<InputTextArea id="description" @bind-Value="@auction.Description" class="form-control" placeholder></InputTextArea>
-						<label for="description" class="ms-3">Description </label>
-						<ValidationMessage For="() => auction.Description"/>
-					</div>
-				</div>
-				<div class="row py-1">
-					<div class="col-6">
-						<div class="form-floating">
-							<InputDate Type="InputDateType.DateTimeLocal" id="start-date" @bind-Value="@auction.StartInclusive"
-							           class="form-control" placeholder></InputDate>
-							<label for="start-date" class="">Start date</label>
-							<ValidationMessage For="() => auction.StartInclusive"/>
-						</div>
-					</div>
-					<div class="col-6">
-						<div class="form-floating">
-							<InputDate Type="InputDateType.DateTimeLocal" id="end-date" @bind-Value="@auction.EndInclusive"
-							           class="form-control" placeholder></InputDate>
-							<label for="end-date" class="">End date</label>
-							<ValidationMessage For="() => auction.EndInclusive"/>
-						</div>
-					</div>
-				</div>
-				<div class="row py-1">
-					<div class="col-6">
-						<div class="form-floating">
-							<InputNumber id="start-price" @bind-Value=@auction.StartingPrice @bind-Value:format="F2" class="form-control" placeholder/>
-							<label for="start-price" class="">Starting price (€)</label>
-							<ValidationMessage For="() => auction.StartingPrice"/>
-						</div>
-					</div>
-					<div class="col-6">
-						<div class="form-floating">
-							<InputNumber id="end-price" @bind-Value=@auction.BuyoutPrice @bind-Value:format="F2" class="form-control" placeholder/>
-							<label for="end-price" class="">Buyout price (€)</label>
-							<ValidationMessage For="() => auction.BuyoutPrice"/>
-						</div>
-					</div>
+<EditForm Model=@auction OnSubmit=@FormSubmitted class="pt-5">
+    <DataAnnotationsValidator/>
+    <div class="container-fluid">
+        <div class="row justify-content-start">
+            <div class="col-lg-7 col-sm-12">
+                <div class="row py-1">
+                    <div class="form-floating">
+                        <InputText id="title" @bind-Value="@auction.NameOfProduct" class="form-control" placeholder></InputText>
+                        <label for="title" class="ms-3">Title</label>
+                        <ValidationMessage For="() => auction.NameOfProduct"/>
+                    </div>
+                </div>
+                <div class="row py-1">
+                    <div class="form-floating">
+                        <InputTextArea id="description" @bind-Value="@auction.Description" class="form-control" placeholder
+                                       style="height: 100px">
+                        </InputTextArea>
+                        <label for="description" class="ms-3">Description </label>
+                        <ValidationMessage For="() => auction.Description"/>
+                    </div>
+                </div>
+                <div class="row py-1">
+                    <div class="col-6">
+                        <div class="form-floating">
+                            <InputDate Type="InputDateType.DateTimeLocal" id="start-date" @bind-Value="@auction.StartInclusive"
+                                       class="form-control" placeholder>
+                            </InputDate>
+                            <label for="start-date" class="">Start date</label>
+                            <ValidationMessage For="() => auction.StartInclusive"/>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="form-floating">
+                            <InputDate Type="InputDateType.DateTimeLocal" id="end-date" @bind-Value="@auction.EndInclusive"
+                                       class="form-control" placeholder>
+                            </InputDate>
+                            <label for="end-date" class="">End date</label>
+                            <ValidationMessage For="() => auction.EndInclusive"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="row py-1">
+                    <div class="col-6">
+                        <div class="form-floating">
+                            <InputNumber id="start-price" @bind-Value=@auction.StartingPrice @bind-Value:format="F2" class="form-control" placeholder/>
+                            <label for="start-price" class="">Starting price (€)</label>
+                            <ValidationMessage For="() => auction.StartingPrice"/>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="form-floating">
+                            <InputNumber id="end-price" @bind-Value=@auction.BuyoutPrice @bind-Value:format="F2" class="form-control" placeholder/>
+                            <label for="end-price" class="">Buyout price (€)</label>
+                            <ValidationMessage For="() => auction.BuyoutPrice"/>
+                        </div>
+                    </div>
 
-				</div>
-			</div>
-			<div class="col-lg-5 col-sm-12">
-				<div class="row py-1">
-					<div class="">
-						<InputFile id="images" class="form-control" multiple
-						           accept="image/png, image/jpeg, image/gif" OnChange="OnChange"
-						           size="524288">
-						</InputFile>
-						<label for="images" class="form-label">Choose images</label>
-						<div class="text-danger">@imageHelper</div>
-					</div>
-				</div>
-				<div class="row py-1">
+                </div>
+            </div>
+            <div class="col-lg-5 col-sm-12">
+                <div class="row py-1">
+                    <div class="">
+                        <label for="images" class="form-label">Choose images</label>
+                        <InputFile id="images" class="form-control form-control-sm" multiple
+                                   accept="image/png, image/jpeg, image/gif" OnChange="OnChange">
+                        </InputFile>
+                    </div>
+                </div>
+                <div class="row py-1">
 
-				</div>
-			</div>
-		</div>
-	</div>
-	
-	<div class="container-fluid pt-5">
-		<div class="form-group">
-        	<input type="submit" value="Submit" class="btn btn-primary"/>
+                </div>
+            </div>
         </div>
-	</div>
+    </div>
+
+    <div class="container-fluid pt-5">
+        <div class="form-group">
+            <input type="submit" value="Submit" class="btn btn-primary"/>
+        </div>
+    </div>
 </EditForm>
 
 @code {
-	Auction auction = new Auction();
-	string controllerResponse = "";
-	private IList<string> imageDataUrls = new List<string>();
-	String imageHelper = "";
-	
-	private async Task OnChange(InputFileChangeEventArgs e){
-		foreach (var file in e.GetMultipleFiles()){
-			var imageFile = file;
-			var buffer = new byte[imageFile.Size];
-			if (file.Size > 512000)
-			{
-				imageHelper = "Tu plsky nedavaj obrazky viac ako 512 KB lebo to este nie je osetrene :)))";
-				//TODO: dorobiť resize na 512kb, lebo to nejde 
-			}
-			else
-			{
-				imageHelper = "tento obrazok je ok ";
-				await file.OpenReadStream().ReadAsync(buffer);
-				var imageDataUrl = $"data:{file.ContentType};base64,{Convert.ToBase64String(buffer)}";
-				auction.ProductImages.Add(new ProductImage { Base64 = imageDataUrl});
-			}
-			
-		}
-	}
-	
-	private async Task FormSubmitted(EditContext editContext){
-		bool formIsValid = editContext.Validate();
-		if (formIsValid){
-			var response = await Http.PostAsJsonAsync("/create", auction);
-			Console.WriteLine(await response.Content.ReadAsStringAsync());
-			if (response.IsSuccessStatusCode){
-				var responseContent = await response.Content.ReadAsStringAsync();
-				controllerResponse = responseContent;
-			}
-			else{
-				// Handle an error response
-			}
-		}
-	}
-	
+    Auction? auction = new Auction();
+    String? errorMessage;
+
+    private async Task OnChange(InputFileChangeEventArgs e)
+    {
+        auction.ProductImages = new List<ProductImage>();
+        foreach (var file in e.GetMultipleFiles())
+        {
+            var imageFile = file;
+            var buffer = new byte[imageFile.Size];
+            if (file.Size > 512000)
+            {
+                IBrowserFile resized = null;
+                var maxWidth = 1500;
+                while (resized == null)
+                {
+                    resized = await file.RequestImageFileAsync(file.ContentType, maxWidth, int.MaxValue);
+                    if (resized.Size > 512000)
+                    {
+                        resized = null;
+                        maxWidth -= 100;
+                    }
+                }
+                await resized.OpenReadStream().ReadAsync(buffer);
+            }
+            else
+            {
+                await file.OpenReadStream().ReadAsync(buffer);
+            }
+            var imageDataUrl = $"data:{file.ContentType};base64,{Convert.ToBase64String(buffer)}";
+            auction.ProductImages.Add(new ProductImage { Base64 = imageDataUrl });
+        }
+    }
+
+    private async Task FormSubmitted(EditContext editContext)
+    {
+        bool formIsValid = editContext.Validate();
+        if (formIsValid)
+        {
+            var response = await Http.PostAsJsonAsync("/Auctions/Create", auction);
+            var responseContent = await response.Content.ReadAsStringAsync();
+            if (response.IsSuccessStatusCode)
+            {
+                appState.ToastMessage = "Auction was successfully created.";
+                appState.ToastType = "success";
+                NavigationManager.NavigateTo($"/auction/detail/{responseContent}");
+            }
+            else
+            {
+                errorMessage = responseContent;
+            }
+        }
+    }
+
 
 }

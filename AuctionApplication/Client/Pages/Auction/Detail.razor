@@ -1,8 +1,327 @@
-﻿@page "/auction/detail/{id}"
+﻿@page "/auction/detail/{id:int}"
+@using AuctionApplication.Client.Services
+@using AuctionApplication.Shared
+@using System.Text.Json
+@using System.Text.Json.Serialization
+@inject AppStateService appState
+@inject HttpClient Http
 
-<h3>Auction Details for ID: @id</h3>
+
+
+@if (appState != null && appState.ToastMessage != null)
+{
+    <div class="d-flex justify-content-center alert alert-@appState.ToastType alert-dismissible fade show" role="alert">
+        @appState.ToastMessage
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (toastErrorMessage != null)
+{
+    <div class="d-flex justify-content-center alert alert-danger alert-dismissible fade show" role="alert">
+        @toastErrorMessage
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (auction != null)
+{
+    @* <p>@test</p> *@
+    @* @foreach (var image in auction.ProductImages) *@
+    @* { *@
+    @*     <p> *@
+    @*         @image.Base64 *@
+    @*     </p> *@
+    @* } *@
+
+    <div class="container-fluid pt-5">
+        <div class="row justify-content-start">
+            <div class="col-lg-7 col-sm-12">
+                <div class="row py-1 d-flex justify-content-center">
+                    <div id="carouselDetailImages" class="carousel slide" data-bs-ride="carousel">
+                        <div class="carousel-indicators">
+                            @for (var i = 0; i < auction.ProductImages.Count; i++)
+                            {
+                                <button type="button" data-bs-target="#carouselDetailImages"
+                                        data-bs-slide-to="@i"
+                                        class="@(i == 0 ? "active" : "")"
+                                        aria-current="@(i == 0 ? "true" : "")"
+                                        aria-label="Slide @(i + 1)">
+                                </button>
+                            }
+                        </div>
+                        <div class="carousel-inner">
+                            @for (var j = 0; j < auction.ProductImages.Count; j++)
+                            {
+                                <div class="carousel-item @(j == 0 ? "active" : "")">
+                                    <img src="@auction.ProductImages[j].Base64" class="d-block w-100" alt="Auction image @(j + 1)">
+                                </div>
+                            }
+                        </div>
+                        <button class="carousel-control-prev" type="button" data-bs-target="#carouselDetailImages" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Previous</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#carouselDetailImages" data-bs-slide="next">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Next</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-5 col-sm-12 px-5">
+                <div class="row py-1">
+                    <div class="d-flex justify-content-center">
+                        <h1 class="fw-bolder">@auction.NameOfProduct</h1>
+                    </div>
+                </div>
+                <div class="row py-1">
+                    <div class="d-flex justify-content-start">
+                        <span>
+                            Status:
+                            <div class="badge rounded-pill text-bg-@status.Color">@status.Title</div>
+                        </span>
+                    </div>
+                </div>
+                <div class="row py-1">
+                    <div class="d-flex justify-content-start">
+                        @if (timeDifference != null)
+                        {
+                            <span>
+                                @status.TimerTitle @FormatTimeDifference(timeDifference)
+                            </span>
+                        }
+                    </div>
+                </div>
+                <div class="row py-1">
+                    <div class="d-flex justify-content-start">
+                        <span>Created by: </span>
+                        <span class="fw-bolder">@auction.Owner.Name</span>
+                    </div>
+                </div>
+                <div class="row py-1">
+                    <div>
+                        <div>Description: </div>
+                        <div class="fw-lighter">@auction.Description</div>
+                    </div>
+                </div>
+                <div class="row py-1 pt-5">
+                    <div>
+                        <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link nav-color-primary active" id="pills-detail-tab" data-bs-toggle="pill" data-bs-target="#pills-detail" type="button" role="tab" aria-controls="pills-detail" aria-selected="true">Detail</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link nav-color-primary" id="pills-bids-tab" data-bs-toggle="pill" data-bs-target="#pills-bids" type="button" role="tab" aria-controls="pills-bids" aria-selected="false">Bids</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link nav-color-primary" id="pills-other-tab" data-bs-toggle="pill" data-bs-target="#pills-other" type="button" role="tab" aria-controls="pills-other" aria-selected="false">Other</button>
+                            </li>
+                        </ul>
+                        <div class="tab-content" id="pills-tabContent">
+                            <div class="tab-pane fade show active" id="pills-detail" role="tabpanel" aria-labelledby="pills-detail-tab" tabindex="0">
+                                <div>
+                                    Start: @auction.StartInclusive
+                                </div>
+                                <div>
+                                    End: @auction.EndInclusive
+                                </div>
+                                <div>
+                                    Starting price: @auction.StartingPrice €
+                                </div>
+                                <div>
+                                    Category: @auction.Category
+                                </div>
+
+                            </div>
+                            <div class="tab-pane fade" id="pills-bids" role="tabpanel" aria-labelledby="pills-bids-tab" tabindex="0">...</div>
+                            <div class="tab-pane fade" id="pills-other" role="tabpanel" aria-labelledby="pills-other-tab" tabindex="0">...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row py-1 pt-5">
+                    <div>
+                        <button class="btn btn-primary">Buy now for @auction.BuyoutPrice €</button>
+                        <button class="btn btn-primary">Bid</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+
 
 @code {
+
     [Parameter]
-    public string id { get; set; }
+    public int id { get; set; }
+
+    public string? toastErrorMessage = null;
+    public Auction? auction;
+    public string test = "";
+    private string currentTime;
+    private TimeDifference? timeDifference;
+    private Status status;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var response = await Http.GetAsync($"/Auctions/{id}");
+        var content = await response.Content.ReadAsStringAsync();
+
+        if (response.IsSuccessStatusCode)
+        {
+            test = content;
+            auction = JsonSerializer.Deserialize<Auction>(content, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true, // Make property names case-insensitive
+                Converters = { new JsonStringEnumConverter() } // Handle enum serialization/deserialization
+            });
+            status = new Status();
+            UpdateTime();
+            var timer = new Timer(UpdateTime, null, 0, 1000);
+        }
+        else
+        {
+            toastErrorMessage = content;
+            auction = null;
+        }
+    }
+
+    private void UpdateTime(object state = null)
+    {
+        if (auction != null)
+        {
+            var now = DateTime.Now;
+            if (auction.StartInclusive > now && status.Id != 1)
+            {
+                status.Id = 1;
+                status.Color = "secondary";
+                status.Title = "NOT ACTIVE";
+                status.TimerTitle = "Time until start:";
+            }
+            else if (auction.StartInclusive <= now && auction.EndInclusive >= now && status.Id != 2)
+            {
+                status.Id = 2;
+                status.Color = "success";
+                status.Title = "ACTIVE";
+                status.TimerTitle = "Time until end:";
+            }
+            else if (status.Id != 3)
+            {
+                status.Id = 3;
+                status.Color = "danger";
+                status.Title = "ENDED";
+            }
+
+            if (status.Id == 1)
+            {
+                timeDifference = CalculateTimeDifference(DateTime.Now, auction.StartInclusive);
+                StateHasChanged();
+            }
+            else if (status.Id == 2)
+            {
+                timeDifference = CalculateTimeDifference(DateTime.Now, auction.EndInclusive);
+                StateHasChanged();
+            }
+        }
+    }
+
+    private TimeDifference CalculateTimeDifference(DateTime start, DateTime end)
+    {
+        TimeSpan timeSpan = end - start;
+
+        int years = end.Year - start.Year;
+        int months = end.Month - start.Month;
+        int days = end.Day - start.Day;
+        int hours = timeSpan.Hours;
+        int minutes = timeSpan.Minutes;
+        int seconds = timeSpan.Seconds;
+
+        if (seconds < 0)
+        {
+            minutes--;
+            seconds += 60;
+        }
+        if (minutes < 0)
+        {
+            hours--;
+            minutes += 60;
+        }
+        if (hours < 0)
+        {
+            days--;
+            hours += 24;
+        }
+        if (days < 0)
+        {
+            months--;
+            int daysInPreviousMonth = DateTime.DaysInMonth(end.Year, end.Month - 1);
+            days += daysInPreviousMonth;
+        }
+        if (months < 0)
+        {
+            years--;
+            months += 12;
+        }
+
+        return new TimeDifference(years, months, days, hours, minutes, seconds);
+    }
+
+    private string FormatTimeDifference(TimeDifference timeDiff)
+    {
+        var parts = new List<string>();
+
+        if (timeDiff.Years > 0)
+            parts.Add($"{timeDiff.Years} year{(timeDiff.Years > 1 ? "s" : "")}");
+
+        if (timeDiff.Months > 0)
+            parts.Add($"{timeDiff.Months} month{(timeDiff.Months > 1 ? "s" : "")}");
+
+        if (timeDiff.Days > 0)
+            parts.Add($"{timeDiff.Days} day{(timeDiff.Days > 1 ? "s" : "")}");
+
+        if (timeDiff.Hours > 0)
+            parts.Add($"{timeDiff.Hours} hour{(timeDiff.Hours > 1 ? "s" : "")}");
+
+        if (timeDiff.Minutes > 0)
+            parts.Add($"{timeDiff.Minutes} minute{(timeDiff.Minutes > 1 ? "s" : "")}");
+
+        if (timeDiff.Seconds > 0)
+            parts.Add($"{timeDiff.Seconds} second{(timeDiff.Seconds > 1 ? "s" : "")}");
+
+        return string.Join(" ", parts);
+    }
+
+    public class TimeDifference
+    {
+        public int? Years { get; }
+        public int? Months { get; }
+        public int? Days { get; }
+        public int? Hours { get; }
+        public int? Minutes { get; }
+        public int? Seconds { get; }
+
+        public TimeDifference(int years, int months, int days, int hours, int minutes, int seconds)
+        {
+            Years = years;
+            Months = months;
+            Days = days;
+            Hours = hours;
+            Minutes = minutes;
+            Seconds = seconds;
+        }
+    }
+
+    public class Status
+    {
+        public int Id { get; set; } = 0;
+        public string Title { get; set; }
+        public string Color { get; set; }
+        public string TimerTitle { get; set; }
+        public string Timer { get; set; }
+    }
+
 }

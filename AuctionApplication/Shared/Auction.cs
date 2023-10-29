@@ -4,6 +4,7 @@ namespace AuctionApplication.Shared;
 
 public class Auction : BaseEntity
 {
+    
     [Required]
     [DataType(DataType.Text)]
     public string NameOfProduct { get; set; } = string.Empty;
@@ -13,7 +14,7 @@ public class Auction : BaseEntity
     [DataType(DataType.Currency)]
     [Range(0, double.MaxValue, ErrorMessage = "Starting price cannot be negative.")]
     public decimal StartingPrice { get; set; }
-    public string PhotoUrl { get; set; } = string.Empty;
+
     [Required(ErrorMessage = "End Date is required.")]
     [DataType(DataType.Date)]
     [DateGreaterThan("StartInclusive", ErrorMessage = "End Date must be greater than Start Date.")]
@@ -24,7 +25,6 @@ public class Auction : BaseEntity
     public DateTime StartInclusive { get; set; } = DateTime.Now.AddDays(1);
     public User Owner { get; set; } = new();
     public User? Winner { get; set; } = null;
-    // public List<ProductImage> ProductImages { get; set; } = new();
     public List<ProductImage> ProductImages { get; set; } = new List<ProductImage>();
     public bool IsClosed { get; set; }
     [DataType(DataType.Currency)]

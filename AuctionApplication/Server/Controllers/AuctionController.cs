@@ -44,20 +44,38 @@ public class AuctionController : ControllerBase
     }
 
     [HttpPost]
-    [Route("/create")]
+    [Route("/Auctions/Create")]
     public async Task<IActionResult> CreateAction([FromBody] Auction formData)
     {
-        var user = await _userService.GetUserByAuth0Id(User);
-        formData.Owner = user;
-        await _auctionRepository.AddAsync(formData);
-        return Ok(formData);
+        try
+        {
+            var user = await _userService.GetUserByAuth0Id(User);
+            formData.Owner = user;
+            var auction = await _auctionRepository.AddAsync(formData);
+            return Ok(auction.Id);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
     }
 
     [HttpGet]
     [Route("/Auctions/{id:int}")]
-    public async Task<OkObjectResult> GetAuctionById(int id)
+    public async Task<ObjectResult> GetAuctionById(int id)
     {
-        return Ok(await _context.Set<Auction>().FirstOrDefaultAsync(a => a.Id == id));
+        try
+        {
+            Auction auction = await _context.Set<Auction>()
+                .Include(a => a.ProductImages)
+                .FirstAsync(a => a.Id == id);
+            return Ok(auction);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+            return NotFound($"Auction detail with ID {id} does not exist.");
+        }
     }
 
     [HttpPost]
