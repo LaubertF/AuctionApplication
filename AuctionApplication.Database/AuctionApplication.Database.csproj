@@ -19,4 +19,9 @@
       <ProjectReference Include="..\AuctionApplication\Shared\AuctionApplication.Shared.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Compile Remove="Migrations\20231022005505_InitialMigration2.cs" />
+      <Compile Remove="Migrations\20231022005505_InitialMigration2.Designer.cs" />
+    </ItemGroup>
+
 </Project>
