@@ -4,11 +4,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AuctionApplication.Server.Hubs;
 
-public class ChatHub : Hub
+public class BidHub : Hub
 {
     private readonly DbContext _context;
 
-    public ChatHub(DbContext context)
+    public BidHub(DbContext context)
     {
         _context = context;
     }
@@ -39,9 +39,11 @@ public class ChatHub : Hub
 
 
 
-    public async Task<List<Bid>> GetBids(int auctionId)
+    public async Task GetBids(int auctionId)
     {
-        return await _context.Set<Bid>().Where(b => b.Auction.Id == auctionId).ToListAsync();
+        var bids = await _context.Set<Bid>().Where(b => b.Auction.Id == auctionId).ToListAsync();
+        await Clients.All.SendAsync("ReceiveBids", bids);
+        
     }
     
 
