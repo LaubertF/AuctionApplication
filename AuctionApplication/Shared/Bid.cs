@@ -2,7 +2,7 @@
 
 public class Bid : BaseEntity
 {
-    public string BidderName { get; set; } = string.Empty;
+    public User Bidder { get; set; } 
     public DateTime Time { get; set; }
     public decimal Value { get; set; }
     

@@ -2,21 +2,22 @@
 
 @using Microsoft.AspNetCore.SignalR.Client
 @using AuctionApplication.Shared
+@using System.Runtime.InteropServices.ComTypes
 @inject NavigationManager Navigation
 @implements IAsyncDisposable
-
+@inject HttpClient Http
 <PageTitle>Home</PageTitle>
 
 <div class="form-group">
     <label>
         User:
-        <input @bind="userInput" />
+        <input @bind="userInput"/>
     </label>
 </div>
 <div class="form-group">
     <label>
         Message:
-        <input @bind="messageInput" size="50" />
+        <input @bind="messageInput" size="50"/>
     </label>
 </div>
 <button @onclick="Send" disabled="@(!IsConnected)">Send</button>
@@ -44,20 +45,20 @@
 
         hubConnection.On<string, string>("ReceiveMessage", (user, message) =>
         {
+            Console.WriteLine("ReceiveMessage");
             var encodedMsg = $"{user}: {message}";
             messages.Add(encodedMsg);
             InvokeAsync(StateHasChanged);
         });
-        
-        hubConnection.On<Bid>("Bid", (bid) =>
+
+        hubConnection.On<Bid>("SendBid", (bid) =>
         {
-            var encodedMsg = $"{bid.BidderName} bided {bid.Value}";
+            var encodedMsg = $"{bid.Bidder.Name} bid {bid.Value}";
             messages.Add(encodedMsg);
             InvokeAsync(StateHasChanged);
         });
-        
-        
-        
+
+
         await hubConnection.StartAsync();
     }
 
@@ -65,9 +66,9 @@
     {
         if (hubConnection is not null)
         {
-            //await hubConnection.SendAsync("SendMessage", userInput, messageInput);
-            
-            await hubConnection.SendAsync("Bid", userInput,messageInput);
+    //await hubConnection.SendAsync("SendMessage", userInput, messageInput);
+            await FormSubmitted();
+            await hubConnection.SendAsync("Bid", userInput, messageInput);
         }
     }
 
@@ -81,4 +82,11 @@
             await hubConnection.DisposeAsync();
         }
     }
+
+    private async Task FormSubmitted()
+    {
+            var response = await Http.PostAsJsonAsync("/Auctions/1/Bid", messageInput);
+            Console.WriteLine(await response.Content.ReadAsStringAsync());
+    }
+
 }

@@ -23,13 +23,15 @@ public class Auction : BaseEntity
     [FutureDate(ErrorMessage = "The date must be in the future.")]
     public DateTime StartInclusive { get; set; } = DateTime.Now.AddDays(1);
     public User Owner { get; set; } = new();
-    public User Winner { get; set; } = new();
+    public User? Winner { get; set; } = null;
     // public List<ProductImage> ProductImages { get; set; } = new();
     public List<ProductImage> ProductImages { get; set; } = new List<ProductImage>();
     public bool IsClosed { get; set; }
     [DataType(DataType.Currency)]
     [Range(0, double.MaxValue, ErrorMessage = "Buyout price cannot be negative.")]
     public decimal BuyoutPrice { get; set; }
+    
+    public AuctionCategory Category { get; set; } = AuctionCategory.Other;
 }
 
 public class FutureDateAttribute : ValidationAttribute
