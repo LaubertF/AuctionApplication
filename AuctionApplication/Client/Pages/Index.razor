@@ -57,9 +57,20 @@
             messages.Add(encodedMsg);
             InvokeAsync(StateHasChanged);
         });
+        hubConnection.On<List<Bid>>("ReceiveBids", (bids) =>
+        {
+            Console.WriteLine(bids.Count);
+            bids.ForEach(bid =>
+            {
+                var encodedMsg = $"bid {bid.Value}";
+                messages.Add(encodedMsg);
+            });
+            InvokeAsync(StateHasChanged);
+        });
 
 
         await hubConnection.StartAsync();
+        await hubConnection.SendAsync("GetBids", 1);
     }
 
     private async Task Send()
@@ -85,8 +96,8 @@
 
     private async Task FormSubmitted()
     {
-            var response = await Http.PostAsJsonAsync("/Auctions/1/Bid", messageInput);
-            Console.WriteLine(await response.Content.ReadAsStringAsync());
+        var response = await Http.PostAsJsonAsync("/Auctions/1/Bid", messageInput);
+        Console.WriteLine(await response.Content.ReadAsStringAsync());
     }
 
 }

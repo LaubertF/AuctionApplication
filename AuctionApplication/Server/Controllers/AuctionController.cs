@@ -17,9 +17,9 @@ public class AuctionController : ControllerBase
     private readonly DbContext _context;
     private readonly UserService _userService;
     private readonly EfRepository<Auction> _auctionRepository;
-    private readonly IHubContext<ChatHub> _hubContext;
+    private readonly IHubContext<BidHub> _hubContext;
 
-    public AuctionController(DbContext context, EfRepository<Auction> auctionRepository, UserService userService, IHubContext<ChatHub> hubContext)
+    public AuctionController(DbContext context, EfRepository<Auction> auctionRepository, UserService userService, IHubContext<BidHub> hubContext)
     {
         _context = context;
         _auctionRepository = auctionRepository;
