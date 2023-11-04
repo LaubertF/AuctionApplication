@@ -5,7 +5,7 @@
 @using System.Text.Json.Serialization
 @inject AppStateService appState
 @inject HttpClient Http
-
+@attribute [Authorize]
 
 
 @if (appState != null && appState.ToastMessage != null)
@@ -26,14 +26,6 @@
 
 @if (auction != null)
 {
-    @* <p>@test</p> *@
-    @* @foreach (var image in auction.ProductImages) *@
-    @* { *@
-    @*     <p> *@
-    @*         @image.Base64 *@
-    @*     </p> *@
-    @* } *@
-
     <div class="container-fluid pt-5">
         <div class="row justify-content-start">
             <div class="col-lg-7 col-sm-12">
@@ -165,12 +157,12 @@
     private TimeDifference? timeDifference;
     private Status status;
 
-
+    
     protected override async Task OnInitializedAsync()
     {
         var response = await Http.GetAsync($"/Auctions/{id}");
         var content = await response.Content.ReadAsStringAsync();
-
+    
         if (response.IsSuccessStatusCode)
         {
             test = content;
@@ -189,7 +181,7 @@
             auction = null;
         }
     }
-
+    
     private void UpdateTime(object state = null)
     {
         if (auction != null)
@@ -215,7 +207,7 @@
                 status.Color = "danger";
                 status.Title = "ENDED";
             }
-
+    
             if (status.Id == 1)
             {
                 timeDifference = CalculateTimeDifference(DateTime.Now, auction.StartInclusive);
@@ -228,18 +220,18 @@
             }
         }
     }
-
+    
     private TimeDifference CalculateTimeDifference(DateTime start, DateTime end)
     {
         TimeSpan timeSpan = end - start;
-
+    
         int years = end.Year - start.Year;
         int months = end.Month - start.Month;
         int days = end.Day - start.Day;
         int hours = timeSpan.Hours;
         int minutes = timeSpan.Minutes;
         int seconds = timeSpan.Seconds;
-
+    
         if (seconds < 0)
         {
             minutes--;
@@ -266,35 +258,35 @@
             years--;
             months += 12;
         }
-
+    
         return new TimeDifference(years, months, days, hours, minutes, seconds);
     }
-
+    
     private string FormatTimeDifference(TimeDifference timeDiff)
     {
         var parts = new List<string>();
-
+    
         if (timeDiff.Years > 0)
             parts.Add($"{timeDiff.Years} year{(timeDiff.Years > 1 ? "s" : "")}");
-
+    
         if (timeDiff.Months > 0)
             parts.Add($"{timeDiff.Months} month{(timeDiff.Months > 1 ? "s" : "")}");
-
+    
         if (timeDiff.Days > 0)
             parts.Add($"{timeDiff.Days} day{(timeDiff.Days > 1 ? "s" : "")}");
-
+    
         if (timeDiff.Hours > 0)
             parts.Add($"{timeDiff.Hours} hour{(timeDiff.Hours > 1 ? "s" : "")}");
-
+    
         if (timeDiff.Minutes > 0)
             parts.Add($"{timeDiff.Minutes} minute{(timeDiff.Minutes > 1 ? "s" : "")}");
-
+    
         if (timeDiff.Seconds > 0)
             parts.Add($"{timeDiff.Seconds} second{(timeDiff.Seconds > 1 ? "s" : "")}");
-
+    
         return string.Join(" ", parts);
     }
-
+    
     public class TimeDifference
     {
         public int? Years { get; }
@@ -303,7 +295,7 @@
         public int? Hours { get; }
         public int? Minutes { get; }
         public int? Seconds { get; }
-
+    
         public TimeDifference(int years, int months, int days, int hours, int minutes, int seconds)
         {
             Years = years;
@@ -314,7 +306,7 @@
             Seconds = seconds;
         }
     }
-
+    
     public class Status
     {
         public int Id { get; set; } = 0;

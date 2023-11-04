@@ -11,6 +11,7 @@ public class Auction : BaseEntity
     [Required]
     [DataType(DataType.Text)]
     public string Description { get; set; } = string.Empty;
+
     [DataType(DataType.Currency)]
     [Range(0, double.MaxValue, ErrorMessage = "Starting price cannot be negative.")]
     public decimal StartingPrice { get; set; }
@@ -27,9 +28,10 @@ public class Auction : BaseEntity
     public User? Winner { get; set; } = null;
     public List<ProductImage> ProductImages { get; set; } = new List<ProductImage>();
     public bool IsClosed { get; set; }
+
     [DataType(DataType.Currency)]
     [Range(0, double.MaxValue, ErrorMessage = "Buyout price cannot be negative.")]
-    public decimal BuyoutPrice { get; set; }
+    public decimal? BuyoutPrice { get; set; } = null;
     
     public AuctionCategory Category { get; set; } = AuctionCategory.Other;
 }

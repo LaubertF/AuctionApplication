@@ -20,9 +20,9 @@ public class BidService
         bid.Auction = auction;
         if (auction.EndInclusive < DateTime.UtcNow || auction.StartInclusive > DateTime.UtcNow) return null;
         
-        if (bid.Value >= auction.BuyoutPrice)
+        if (auction.BuyoutPrice != null && bid.Value >= auction.BuyoutPrice)
         {
-            bid.Value = auction.BuyoutPrice;
+            bid.Value = (decimal)auction.BuyoutPrice;
             auction.Winner = bid.Bidder;
             await _context.Set<Bid>().AddAsync(bid);
             await _context.SaveChangesAsync();

@@ -5,6 +5,7 @@
 @inject HttpClient Http
 @inject NavigationManager NavigationManager
 @inject AppStateService appState
+@attribute [Authorize]
 
 @if (errorMessage != null)
 {
@@ -33,12 +34,27 @@
                 <div class="row py-1">
                     <div class="form-floating">
                         <InputTextArea id="description" @bind-Value="@auction.Description" class="form-control" placeholder
-                                       style="height: 100px">
+                                       style="height: 20rem">
                         </InputTextArea>
                         <label for="description" class="ms-3">Description </label>
                         <ValidationMessage For="() => auction.Description"/>
                     </div>
                 </div>
+                <div class="row py-1">
+                    <div class="col-12">
+                        <div class="form-floating">
+                            <InputSelect id="category" @bind-Value="@auction.Category" class="form-select" placeholder>
+                                @foreach (AuctionCategory category in Enum.GetValues(typeof(AuctionCategory)))
+                                {
+                                    <option value="@category">@category</option>
+                                }
+                            </InputSelect>
+                            <label for="start-date" class="">Category</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-5 col-sm-12">
                 <div class="row py-1">
                     <div class="col-6">
                         <div class="form-floating">
@@ -76,10 +92,8 @@
                     </div>
 
                 </div>
-            </div>
-            <div class="col-lg-5 col-sm-12">
                 <div class="row py-1">
-                    <div class="">
+                    <div class="col-6">
                         <label for="images" class="form-label">Choose images</label>
                         <InputFile id="images" class="form-control form-control-sm" multiple
                                    accept="image/png, image/jpeg, image/gif" OnChange="OnChange">
@@ -87,11 +101,43 @@
                     </div>
                 </div>
                 <div class="row py-1">
-
+                    @if (auction.ProductImages != null && auction.ProductImages.Count > 0)
+                    {
+                        <div id="carouselCreateImages" class="carousel slide" data-bs-ride="carousel">
+                            <div class="carousel-indicators">
+                                @for (var i = 0; i < auction.ProductImages.Count; i++)
+                                {
+                                    <button type="button" data-bs-target="#carouselDetailImagescarouselCreateImages"
+                                            data-bs-slide-to="@i"
+                                            class="@(i == 0 ? "active" : "")"
+                                            aria-current="@(i == 0 ? "true" : "")"
+                                            aria-label="Slide @(i + 1)">
+                                    </button>
+                                }
+                            </div>
+                            <div class="carousel-inner">
+                                @for (var j = 0; j < auction.ProductImages.Count; j++)
+                                {
+                                    <div class="carousel-item @(j == 0 ? "active" : "")">
+                                        <img src="@auction.ProductImages[j].Base64" class="d-block w-100" alt="Auction image @(j + 1)">
+                                    </div>
+                                }
+                            </div>
+                            <button class="carousel-control-prev" type="button" data-bs-target="#carouselCreateImages" data-bs-slide="prev">
+                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                <span class="visually-hidden">Previous</span>
+                            </button>
+                            <button class="carousel-control-next" type="button" data-bs-target="#carouselCreateImages" data-bs-slide="next">
+                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                <span class="visually-hidden">Next</span>
+                            </button>
+                        </div>
+                    }
                 </div>
             </div>
         </div>
     </div>
+
 
     <div class="container-fluid pt-5">
         <div class="form-group">
