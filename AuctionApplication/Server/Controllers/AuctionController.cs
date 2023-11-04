@@ -18,13 +18,15 @@ public class AuctionController : ControllerBase
     private readonly UserService _userService;
     private readonly EfRepository<Auction> _auctionRepository;
     private readonly IHubContext<BidHub> _hubContext;
+    private readonly AuctionService _auctionService;
 
-    public AuctionController(DbContext context, EfRepository<Auction> auctionRepository, UserService userService, IHubContext<BidHub> hubContext)
+    public AuctionController(DbContext context, EfRepository<Auction> auctionRepository, UserService userService, IHubContext<BidHub> hubContext, AuctionService auctionService)
     {
         _context = context;
         _auctionRepository = auctionRepository;
         _userService = userService;
         _hubContext = hubContext;
+        _auctionService = auctionService;
     }
 
     [HttpPost]
@@ -122,6 +124,21 @@ public class AuctionController : ControllerBase
         auctionToUpdate.Description = auction.Description;
         auctionToUpdate.StartingPrice = auction.StartingPrice;
         auctionToUpdate.EndInclusive = auction.EndInclusive;
+        await _context.SaveChangesAsync();
+        return Ok();
+    }
+    
+    [HttpPost]
+    [Route("/Pay/{id:int}")]
+    public async Task<IActionResult> Pay(int id)
+    {
+        
+        var auction = await _context.Set<Auction>().FirstOrDefaultAsync(a => a.Id == id);
+        if (auction == null) return NotFound();
+        if (!_auctionService.CheckAuctionForCompletion(auction)) return BadRequest();
+        var payment = await _context.Set<Payment>().FirstOrDefaultAsync(p => p.Auction == auction);
+        if (payment == null) return NotFound();
+        payment.State = PaymentState.Paid;
         await _context.SaveChangesAsync();
         return Ok();
     }

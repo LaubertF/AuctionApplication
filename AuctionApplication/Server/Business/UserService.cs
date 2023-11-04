@@ -16,25 +16,36 @@ public class UserService
         _userRepository = userRepository;
         _context = context;
     }
-    
-    public async Task<User> GetUserByAuth0Id(string auth0Id)
-    {
-        
-        var user =  await _context.Set<User>().FirstOrDefaultAsync(u => u.Auth0Id == auth0Id);
-        if (user != null) return user;
-        user = new User
-        {
-            Auth0Id = auth0Id
-        };
-        await _userRepository.AddAsync(user);
-        return user;
-    }
+
 
     public async Task<User> GetUserByAuth0Id(ClaimsPrincipal user)
     {
         var auth0Id = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
-        if (auth0Id != null) return await GetUserByAuth0Id(auth0Id.Value);
-        throw new Exception("User not found");
+        if (auth0Id == null) throw new Exception();
+        var userFromDb = await _context.Set<User>().FirstOrDefaultAsync(u => u.Auth0Id == auth0Id.Value);
+        if (userFromDb != null) return userFromDb;
+        var newUser = new User
+        {
+            Auth0Id = auth0Id.Value,
+            Name = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value ??
+                   throw new Exception(),
+        };
+        await _userRepository.AddAsync(newUser);
+        return newUser;
+    }
+
+    public async Task<List<Payment>> GetPayments(User user)
+    {
+        return await _context.Set<Payment>().Where(p => p.User == user).ToListAsync();
     }
     
+    public async Task<List<Auction>> GetOwnedAuctions(User user)
+    {
+        return await _context.Set<Auction>().Where(p => p.Owner == user).ToListAsync();
+    }
+    
+    public async Task<List<Auction>> GetWonAuctions(User user)
+    {
+        return await _context.Set<Auction>().Where(p => p.Winner == user).ToListAsync();
+    }
 }
