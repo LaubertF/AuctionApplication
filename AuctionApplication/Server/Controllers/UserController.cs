@@ -1,4 +1,5 @@
-﻿using AuctionApplication.Shared;
+﻿using System.Security.Claims;
+using AuctionApplication.Shared;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -56,5 +57,38 @@ public class UserController : ControllerBase
         _context.Set<User>().Remove(user);
         await _context.SaveChangesAsync();
         return Ok();
+    }
+    
+    [HttpGet]
+    [Route("/Users/{id:int}/WonAuctions")]
+    public async Task<IActionResult> GetWonAuctions(int id)
+    {
+        var user = await _context.Set<User>().FirstOrDefaultAsync(a => a.Id == id);
+        if (user == null)
+        {
+            return NotFound();
+        }
+        var auctions = await _context.Set<Auction>().Where(a => a.Winner == user).ToListAsync();
+        return Ok(auctions);
+    }
+
+    [HttpPost]
+    [Route("/Users/Name")]
+    public IActionResult SetUsername([FromBody] string username)
+    {
+        try
+        {
+            var user = _context.Set<User>().FirstOrDefault(u =>
+                u.Auth0Id == User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value);
+            if (user != null) user.Name = username;
+            _context.SaveChanges();
+            return Ok();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            return NotFound();
+        }
+
     }
 }

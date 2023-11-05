@@ -54,7 +54,7 @@
             Console.WriteLine(bids.Count);
             bids.ForEach(bid =>
             {
-                var encodedMsg = $"bid {bid.Value}";
+                var encodedMsg = $"{bid.Bidder.Name} bid {bid.Value}";
                 messages.Add(encodedMsg);
             });
             InvokeAsync(StateHasChanged);
@@ -91,5 +91,4 @@
         var response = await Http.PostAsJsonAsync("/Auctions/1/Bid", messageInput);
         Console.WriteLine(await response.Content.ReadAsStringAsync());
     }
-
 }

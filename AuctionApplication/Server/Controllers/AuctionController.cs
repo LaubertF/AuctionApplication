@@ -241,6 +241,20 @@ public class AuctionController : ControllerBase
         await _context.SaveChangesAsync();
         return Ok();
     }
+
+    [HttpPost]
+    [Route("/Pay/{id:int}")]
+    public async Task<IActionResult> Pay(int id)
+    {
+        var auction = await _context.Set<Auction>().FirstOrDefaultAsync(a => a.Id == id);
+        if (auction == null) return NotFound();
+        if (!_auctionService.CheckAuctionForCompletion(auction)) return BadRequest();
+        var payment = await _context.Set<Payment>().FirstOrDefaultAsync(p => p.Auction == auction);
+        if (payment == null) return NotFound();
+        payment.State = PaymentState.Paid;
+        await _context.SaveChangesAsync();
+        return Ok();
+    }
 }
 
 public record AuctionDto(string NameOfProduct, string Description, decimal StartingPrice, DateTime EndInclusive);

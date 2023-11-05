@@ -10,6 +10,7 @@ public class Context : DbContext
     public DbSet<ProductImage> ProductImages { get; set; }
     public DbSet<User> Users { get; set; }
     public DbSet<Bid> Bids { get; set; }
+    public DbSet<Payment> Payments { get; set; }
     
     
     public string DbPath { get; }

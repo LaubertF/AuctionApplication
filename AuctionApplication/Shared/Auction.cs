@@ -35,6 +35,7 @@ public class Auction : BaseEntity
     public decimal? BuyoutPrice { get; set; } = null;
     
     public AuctionCategory Category { get; set; } = AuctionCategory.Other;
+    
 }
 
 public class FutureDateAttribute : ValidationAttribute
