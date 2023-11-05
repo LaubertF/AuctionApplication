@@ -42,15 +42,7 @@
         hubConnection = new HubConnectionBuilder()
             .WithUrl(Navigation.ToAbsoluteUri("/chathub"))
             .Build();
-
-        hubConnection.On<string, string>("ReceiveMessage", (user, message) =>
-        {
-            Console.WriteLine("ReceiveMessage");
-            var encodedMsg = $"{user}: {message}";
-            messages.Add(encodedMsg);
-            InvokeAsync(StateHasChanged);
-        });
-
+        
         hubConnection.On<Bid>("SendBid", (bid) =>
         {
             var encodedMsg = $"{bid.Bidder.Name} bid {bid.Value}";

@@ -3,8 +3,11 @@
 @using AuctionApplication.Shared
 @using System.Text.Json
 @using System.Text.Json.Serialization
+@using Microsoft.AspNetCore.SignalR.Client
 @inject AppStateService appState
 @inject HttpClient Http
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
 @attribute [Authorize]
 
 
@@ -16,12 +19,15 @@
     </div>
 }
 
-@if (toastErrorMessage != null)
+@foreach (Toast toast in toasts)
 {
-    <div class="d-flex justify-content-center alert alert-danger alert-dismissible fade show" role="alert">
-        @toastErrorMessage
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
+    @if (toast.Show == "page")
+    {
+        <div class="d-flex justify-content-center alert alert-@toast.Type alert-dismissible fade show" role="alert">
+            @toast.Message
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
 }
 
 @if (auction != null)
@@ -69,35 +75,36 @@
                 </div>
                 <div class="row py-1">
                     <div class="d-flex justify-content-start">
-                        <span>
-                            Status:
-                            <div class="badge rounded-pill text-bg-@status.Color">@status.Title</div>
-                        </span>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item">
+                                <span class="fw-bold">Status:</span>
+                                <span class="badge rounded-pill text-bg-@status.Color">@status.Title</span>
+                            </li>
+                            @if (auction.IsClosed == false && timeDifference != null)
+                            {
+                                <li class="list-group-item">
+                                    <span>
+                                        <span class="fw-bold">@status.TimerTitle</span> @FormatTimeDifference(timeDifference)
+                                    </span>
+                                </li>
+                            }
+                            <li class="list-group-item">
+                                <span class="fw-bold">Created by: </span>
+                                <span class="fw-bolder">@auction.Owner.Name</span>
+                            </li>
+                            <li class="list-group-item">
+                                <div class="fw-bold">Category: </div>
+                                <div class="fw-lighter">@auction.Category</div>
+                            </li>
+                            <li class="list-group-item">
+                                <div class="fw-bold">Description: </div>
+                                <div class="fw-lighter">@auction.Description</div>
+                            </li>
+                        </ul>
+
                     </div>
                 </div>
-                <div class="row py-1">
-                    <div class="d-flex justify-content-start">
-                        @if (timeDifference != null)
-                        {
-                            <span>
-                                @status.TimerTitle @FormatTimeDifference(timeDifference)
-                            </span>
-                        }
-                    </div>
-                </div>
-                <div class="row py-1">
-                    <div class="d-flex justify-content-start">
-                        <span>Created by: </span>
-                        <span class="fw-bolder">@auction.Owner.Name</span>
-                    </div>
-                </div>
-                <div class="row py-1">
-                    <div>
-                        <div>Description: </div>
-                        <div class="fw-lighter">@auction.Description</div>
-                    </div>
-                </div>
-                <div class="row py-1 pt-5">
+                <div class="row p-2 pt-3">
                     <div>
                         <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
                             <li class="nav-item" role="presentation">
@@ -112,102 +119,289 @@
                         </ul>
                         <div class="tab-content" id="pills-tabContent">
                             <div class="tab-pane fade show active" id="pills-detail" role="tabpanel" aria-labelledby="pills-detail-tab" tabindex="0">
-                                <div>
-                                    Start: @auction.StartInclusive
-                                </div>
-                                <div>
-                                    End: @auction.EndInclusive
-                                </div>
-                                <div>
-                                    Starting price: @auction.StartingPrice €
-                                </div>
-                                <div>
-                                    Category: @auction.Category
-                                </div>
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item">
+                                        <span class="fw-bold">Start: </span>@auction.StartInclusive
+                                    </li>
+                                    <li class="list-group-item">
+                                        <span class="fw-bold">End: </span>@auction.EndInclusive
+                                    </li>
+                                    @if (auction.IsClosed == false)
+                                    {
+                                        <li class="list-group-item">
+                                            <span class="fw-bold">Minimal bid: </span>@auction.StartingPrice €
+                                        </li>
+                                    }
+
+                                    @if (auction.IsClosed == true && auction.Winner != null)
+                                    {
+                                        <li class="list-group-item">
+                                            <span class="fw-bold">Winner: </span>@auction.Winner.Name
+                                        </li>
+                                    }
+                                </ul>
+                            </div>
+                            <div class="tab-pane fade" id="pills-bids" role="tabpanel" aria-labelledby="pills-bids-tab" tabindex="0">
+                                <ul class="list-group list-group-flush" id="bid-list-group">
+                                    @foreach (var bid in bidList)
+                                    {
+                                        <li class="list-group-item">@bid</li>
+                                    }
+                                </ul>
+                            </div>
+                            <div class="tab-pane fade" id="pills-other" role="tabpanel" aria-labelledby="pills-other-tab" tabindex="0">
 
                             </div>
-                            <div class="tab-pane fade" id="pills-bids" role="tabpanel" aria-labelledby="pills-bids-tab" tabindex="0">...</div>
-                            <div class="tab-pane fade" id="pills-other" role="tabpanel" aria-labelledby="pills-other-tab" tabindex="0">...</div>
                         </div>
                     </div>
                 </div>
+                @if (status.Id == 2)
+                {
+                    <div class="row py-1 pt-5">
+                        <div>
+                            @if (auction.BuyoutPrice != null)
+                            {
+                                <div class="p-2">
+                                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#buyoutModal">Buy now for @auction.BuyoutPrice €</button>
+                                </div>
+                            }
+                            <div class="p-2">
+                                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#bidModal">Bid</button>
+                            </div>
 
-                <div class="row py-1 pt-5">
-                    <div>
-                        <button class="btn btn-primary">Buy now for @auction.BuyoutPrice €</button>
-                        <button class="btn btn-primary">Bid</button>
+                        </div>
                     </div>
-                </div>
+                }
             </div>
         </div>
     </div>
 }
 
+<div class="modal fade" id="bidModal" tabindex="-1" aria-labelledby="bidModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <EditForm Model=@detailBid OnSubmit=@BidSubmitted>
+                <DataAnnotationsValidator/>
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="bidModalLabel">Bid</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    @foreach (Toast toast in toasts)
+                    {
+                        @if (toast.Show == "modal")
+                        {
+                            <div class="d-flex justify-content-center alert alert-@toast.Type alert-dismissible fade show" role="alert">
+                                @toast.Message
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        }
+                    }
+                    <div class="form-group">
+                        <label>Bid value</label>
+                        <InputNumber id="bid-value" @bind-Value=@detailBid.Value @bind-Value:format="F2" class="form-control"/>
+                        <ValidationMessage For="() => detailBid.Value"/>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary" disabled="@(!IsHubConnected)">Bid</button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
 
+<div class="modal fade" id="buyoutModal" tabindex="-1" aria-labelledby="buyoutModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="buyoutModalLabel">Bid</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                @foreach (Toast toast in toasts)
+                {
+                    @if (toast.Show == "modal")
+                    {
+                        <div class="d-flex justify-content-center alert alert-@toast.Type alert-dismissible fade show" role="alert">
+                            @toast.Message
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+                }
+                <div>
+                    @if (auction != null)
+                    {
+                        <span>Are you sure you want to buy the @(auction.NameOfProduct) for @auction.BuyoutPrice € ?</span>
+                    }
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-primary" onclick="@BuyoutSubmitted">Buy</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 @code {
 
     [Parameter]
     public int id { get; set; }
 
-    public string? toastErrorMessage = null;
-    public Auction? auction;
-    public string test = "";
+    public Bid? detailBid = new Bid();
+
+    private Auction? auction;
     private string currentTime;
     private TimeDifference? timeDifference;
     private Status status;
+    private HubConnection? hubConnection;
+    private List<MarkupString> bidList = new List<MarkupString>();
+    private List<Toast> toasts = new List<Toast>();
 
-    
     protected override async Task OnInitializedAsync()
     {
         var response = await Http.GetAsync($"/Auctions/{id}");
         var content = await response.Content.ReadAsStringAsync();
-    
+
         if (response.IsSuccessStatusCode)
         {
-            test = content;
+            InitHub();
             auction = JsonSerializer.Deserialize<Auction>(content, new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true, // Make property names case-insensitive
                 Converters = { new JsonStringEnumConverter() } // Handle enum serialization/deserialization
             });
+            detailBid.Value = auction.StartingPrice + (decimal)0.01;
             status = new Status();
-            UpdateTime();
-            var timer = new Timer(UpdateTime, null, 0, 1000);
+            var timer = new Timer(UpdateTime, null, 0, 500);
         }
         else
         {
-            toastErrorMessage = content;
+            toasts.Add(new Toast { Type = "danger", Show = "page", Message = content });
             auction = null;
         }
     }
-    
+
+    private async void InitHub()
+    {
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(NavigationManager.ToAbsoluteUri("/chathub"))
+            .Build();
+
+        hubConnection.On<BidData>("SendBid", (bidData) =>
+        {
+            if (bidData.AuctionId == id)
+            {
+                var bidderName = String.IsNullOrEmpty(bidData.BidderName) ? "Unknown user" : bidData.BidderName;
+                bidList.Insert(0, new MarkupString($"{bidderName} has bid <b>{bidData.Value} €</b> on {bidData.Time}"));
+                detailBid.Value = auction.StartingPrice + (decimal)0.01;
+                auction.StartingPrice = bidData.Value;
+                InvokeAsync(StateHasChanged);
+            }
+        });
+        hubConnection.On<List<BidData>>("ReceiveBids", (bids) =>
+        {
+            var i = 0;
+            foreach (var bidData in bids)
+            {
+                if (bidData.AuctionId == id)
+                {
+                    if (i == 0)
+                    {
+                        detailBid.Value = auction.StartingPrice + (decimal)0.01;
+                        auction.StartingPrice = bidData.Value;
+                    }
+                    var bidderName = String.IsNullOrEmpty(bidData.BidderName) ? "Unknown user" : bidData.BidderName;
+                    bidList.Add(new MarkupString($"{bidderName} has bid <b>{bidData.Value} €</b> on {bidData.Time}"));
+                    i++;
+                }
+            }
+
+            InvokeAsync(StateHasChanged);
+        });
+
+
+        await hubConnection.StartAsync();
+        await hubConnection.SendAsync("GetBids", id);
+    }
+
+    public bool IsHubConnected =>
+        hubConnection?.State == HubConnectionState.Connected;
+
+    private async Task BidSubmitted(EditContext editContext)
+    {
+        bool formIsValid = editContext.Validate();
+        if (formIsValid)
+        {
+            var response = await Http.PostAsJsonAsync($"/Auctions/{id}/Bid", detailBid.Value);
+            var responseContent = await response.Content.ReadAsStringAsync();
+            if (response.IsSuccessStatusCode)
+            {
+                await JSRuntime.InvokeVoidAsync("closeModal", "bidModal");
+                toasts.Add(new Toast { Type = "success", Show = "page", Message = $"Success! Your bid has been placed on the {auction.NameOfProduct} auction. Good luck, and may the highest bid win!" });
+            }
+            else
+            {
+                await JSRuntime.InvokeVoidAsync("watchInput", "bid-value", auction.StartingPrice);
+                await JSRuntime.InvokeVoidAsync("makeInputInvalid", "bid-value");
+                toasts.Add(new Toast { Type = "danger", Show = "modal", Message = responseContent });
+            }
+        }
+    }
+
+    private async Task BuyoutSubmitted()
+    {
+        var navigateToPayment = false;
+        if (auction != null)
+        {
+            var response = await Http.PostAsJsonAsync($"/Auctions/{id}/Buyout", auction.BuyoutPrice);
+            var responseContent = await response.Content.ReadAsStringAsync();
+            if (response.IsSuccessStatusCode)
+            {
+                await JSRuntime.InvokeVoidAsync("closeModal", "buyoutModal");
+                toasts.Add(new Toast { Type = "success", Show = "page", Message = $"Success!" });
+                navigateToPayment = true;
+            }
+            else
+            {
+                toasts.Add(new Toast { Type = "danger", Show = "modal", Message = responseContent });
+            }
+        }
+        if (navigateToPayment)
+        {
+            NavigationManager.NavigateTo($"/auction/detail/{id}/payment");
+        }
+        
+    }
+
     private void UpdateTime(object state = null)
     {
         if (auction != null)
         {
             var now = DateTime.Now;
-            if (auction.StartInclusive > now && status.Id != 1)
+            if (auction.IsClosed == false && auction.StartInclusive > now && status.Id != 1)
             {
                 status.Id = 1;
                 status.Color = "secondary";
                 status.Title = "NOT ACTIVE";
                 status.TimerTitle = "Time until start:";
             }
-            else if (auction.StartInclusive <= now && auction.EndInclusive >= now && status.Id != 2)
+            else if (auction.IsClosed == false && auction.StartInclusive <= now && auction.EndInclusive >= now && status.Id != 2)
             {
                 status.Id = 2;
                 status.Color = "success";
                 status.Title = "ACTIVE";
                 status.TimerTitle = "Time until end:";
             }
-            else if (status.Id != 3)
+            else if ((auction.EndInclusive > now && status.Id != 3) || auction.IsClosed == true)
             {
                 status.Id = 3;
                 status.Color = "danger";
                 status.Title = "ENDED";
             }
-    
+
             if (status.Id == 1)
             {
                 timeDifference = CalculateTimeDifference(DateTime.Now, auction.StartInclusive);
@@ -220,18 +414,18 @@
             }
         }
     }
-    
+
     private TimeDifference CalculateTimeDifference(DateTime start, DateTime end)
     {
         TimeSpan timeSpan = end - start;
-    
+
         int years = end.Year - start.Year;
         int months = end.Month - start.Month;
         int days = end.Day - start.Day;
         int hours = timeSpan.Hours;
         int minutes = timeSpan.Minutes;
         int seconds = timeSpan.Seconds;
-    
+
         if (seconds < 0)
         {
             minutes--;
@@ -258,35 +452,35 @@
             years--;
             months += 12;
         }
-    
+
         return new TimeDifference(years, months, days, hours, minutes, seconds);
     }
-    
+
     private string FormatTimeDifference(TimeDifference timeDiff)
     {
         var parts = new List<string>();
-    
+
         if (timeDiff.Years > 0)
             parts.Add($"{timeDiff.Years} year{(timeDiff.Years > 1 ? "s" : "")}");
-    
+
         if (timeDiff.Months > 0)
             parts.Add($"{timeDiff.Months} month{(timeDiff.Months > 1 ? "s" : "")}");
-    
+
         if (timeDiff.Days > 0)
             parts.Add($"{timeDiff.Days} day{(timeDiff.Days > 1 ? "s" : "")}");
-    
+
         if (timeDiff.Hours > 0)
             parts.Add($"{timeDiff.Hours} hour{(timeDiff.Hours > 1 ? "s" : "")}");
-    
+
         if (timeDiff.Minutes > 0)
             parts.Add($"{timeDiff.Minutes} minute{(timeDiff.Minutes > 1 ? "s" : "")}");
-    
+
         if (timeDiff.Seconds > 0)
             parts.Add($"{timeDiff.Seconds} second{(timeDiff.Seconds > 1 ? "s" : "")}");
-    
+
         return string.Join(" ", parts);
     }
-    
+
     public class TimeDifference
     {
         public int? Years { get; }
@@ -295,7 +489,7 @@
         public int? Hours { get; }
         public int? Minutes { get; }
         public int? Seconds { get; }
-    
+
         public TimeDifference(int years, int months, int days, int hours, int minutes, int seconds)
         {
             Years = years;
@@ -306,7 +500,7 @@
             Seconds = seconds;
         }
     }
-    
+
     public class Status
     {
         public int Id { get; set; } = 0;

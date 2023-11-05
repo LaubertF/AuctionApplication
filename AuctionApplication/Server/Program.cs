@@ -22,6 +22,7 @@ builder.Services.AddScoped<DbContext,Context>();
 builder.Services.AddScoped<EfRepository<Auction>>();
 builder.Services.AddScoped<EfRepository<User>>();
 builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<AuctionService>();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, c =>
     {
