@@ -6,20 +6,23 @@ namespace AuctionApplication.Server.Business;
 public class BidService
 {
     private readonly DbContext _context;
-    
+
     public BidService(DbContext context)
     {
         _context = context;
     }
-    
-    public async Task<Bid?> PostBid(Bid bid, int auctionId)
+
+    public async Task<Bid?> PostBid(decimal value, Auction auction, User user)
     {
-        var auction = await _context.Set<Auction>().FirstOrDefaultAsync(a => a.Id == auctionId);
-        if (auction == null) return null;
+        var bid = new Bid
+        {
+            Value = value,
+            Bidder = user
+        };
         if (auction.Winner != null) return null;
         bid.Auction = auction;
         if (auction.EndInclusive < DateTime.UtcNow || auction.StartInclusive > DateTime.UtcNow) return null;
-        
+
         if (auction.BuyoutPrice != null && bid.Value >= auction.BuyoutPrice)
         {
             bid.Value = (decimal)auction.BuyoutPrice;
@@ -28,14 +31,14 @@ public class BidService
             await _context.SaveChangesAsync();
             return bid;
         }
-        
-        var currentBids = await _context.Set<Bid>().Where(b => b.Auction.Id == auctionId).ToListAsync();
+
+        var currentBids = await _context.Set<Bid>().Where(b => b.Auction == auction).ToListAsync();
         if (currentBids.Count > 0)
         {
             var highestBid = currentBids.Max(b => b.Value);
             if (bid.Value <= highestBid) return null;
         }
-        
+
         await _context.Set<Bid>().AddAsync(bid);
         await _context.SaveChangesAsync();
         return bid;

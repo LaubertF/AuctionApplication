@@ -11,7 +11,7 @@ public class AuctionService
     {
         _context = context;
     }
-    
+
     public async Task CheckAuctionsForCompletion()
     {
         var auctions = await _context.Set<Auction>().Where(x => x.Winner == null).ToListAsync();
@@ -20,6 +20,7 @@ public class AuctionService
             CheckAuctionForCompletion(auction);
         }
     }
+
     /**
      * Returns true if the auction is completed, false otherwise.
      */
@@ -27,7 +28,7 @@ public class AuctionService
     {
         if (auction.EndInclusive >= DateTime.UtcNow) return false;
         if (auction.Winner != null) return true;
-        var topBid = auction.Bids.MaxBy(b => b.Value);
+        var topBid = _context.Set<Bid>().Where(b => b.Auction == auction).MaxBy(b => b.Value);
         if (topBid == null)
         {
             return true;

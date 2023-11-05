@@ -35,7 +35,6 @@ public class Auction : BaseEntity
     
     public AuctionCategory Category { get; set; } = AuctionCategory.Other;
     
-    public List<Bid> Bids { get; set; } = new List<Bid>();
 }
 
 public class FutureDateAttribute : ValidationAttribute

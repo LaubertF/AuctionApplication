@@ -42,10 +42,8 @@ public class BidHub : Hub
     public async Task GetBids(int auctionId)
     {
         
-        var bids = await _context.Set<Bid>().Where(b => b.Auction.Id == auctionId).ToListAsync();
+        var bids = await _context.Set<Bid>().Where(b => b.Auction.Id == auctionId).Include(b => b.Bidder).Include(b => b.Auction).ToListAsync();
         await Clients.Caller.SendAsync("ReceiveBids", bids);
         //await Clients.All.SendAsync("ReceiveBids", bids);
     }
-    
-
 }

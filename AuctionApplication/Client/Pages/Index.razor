@@ -62,7 +62,7 @@
             Console.WriteLine(bids.Count);
             bids.ForEach(bid =>
             {
-                var encodedMsg = $"bid for {bid.Value}";
+                var encodedMsg = $"{bid.Bidder.Name} bid {bid.Value}";
                 messages.Add(encodedMsg);
             });
             InvokeAsync(StateHasChanged);

@@ -27,8 +27,7 @@ public class UserService
         var newUser = new User
         {
             Auth0Id = auth0Id.Value,
-            Name = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value ??
-                   throw new Exception(),
+            Name = auth0Id.Value.Substring(5, 10),
         };
         await _userRepository.AddAsync(newUser);
         return newUser;
@@ -38,14 +37,15 @@ public class UserService
     {
         return await _context.Set<Payment>().Where(p => p.User == user).ToListAsync();
     }
-    
+
     public async Task<List<Auction>> GetOwnedAuctions(User user)
     {
         return await _context.Set<Auction>().Where(p => p.Owner == user).ToListAsync();
     }
-    
+
     public async Task<List<Auction>> GetWonAuctions(User user)
     {
         return await _context.Set<Auction>().Where(p => p.Winner == user).ToListAsync();
     }
+    
 }

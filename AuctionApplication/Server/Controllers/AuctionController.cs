@@ -1,4 +1,5 @@
 using System.Net;
+using System.Security.Claims;
 using AuctionApplication.Database;
 using AuctionApplication.Server.Business;
 using AuctionApplication.Server.Hubs;
@@ -19,14 +20,17 @@ public class AuctionController : ControllerBase
     private readonly EfRepository<Auction> _auctionRepository;
     private readonly IHubContext<BidHub> _hubContext;
     private readonly AuctionService _auctionService;
+    private readonly BidService _bidService;
 
-    public AuctionController(DbContext context, EfRepository<Auction> auctionRepository, UserService userService, IHubContext<BidHub> hubContext, AuctionService auctionService)
+    public AuctionController(DbContext context, EfRepository<Auction> auctionRepository, UserService userService,
+        IHubContext<BidHub> hubContext, AuctionService auctionService, BidService bidService)
     {
         _context = context;
         _auctionRepository = auctionRepository;
         _userService = userService;
         _hubContext = hubContext;
         _auctionService = auctionService;
+        _bidService = bidService;
     }
 
     [HttpPost]
@@ -37,11 +41,12 @@ public class AuctionController : ControllerBase
         _hubContext.Clients.All.SendAsync("ReceiveMessage", "user", "message");
         return Ok();
     }
-    
+
     [HttpGet]
     [Route("/Auctions")]
     public async Task<IList<Auction>> Get()
     {
+        await _auctionService.CheckAuctionsForCompletion();
         return await _auctionRepository.ListAsync();
     }
 
@@ -71,6 +76,7 @@ public class AuctionController : ControllerBase
             Auction auction = await _context.Set<Auction>()
                 .Include(a => a.ProductImages)
                 .FirstAsync(a => a.Id == id);
+            _auctionService.CheckAuctionForCompletion(auction);
             return Ok(auction);
         }
         catch (Exception e)
@@ -86,17 +92,17 @@ public class AuctionController : ControllerBase
     {
         var auction = await _context.Set<Auction>().FirstOrDefaultAsync(a => a.Id == id);
         if (auction == null) return NotFound();
-        var user = await _userService.GetUserByAuth0Id(User);
-        var newBid = new Bid
+        if (_auctionService.CheckAuctionForCompletion(auction))
         {
-            Auction = auction,
-            Bidder = user,
-            Value = value
-        };
-        await _context.Set<Bid>().AddAsync(newBid);
-        await _context.SaveChangesAsync();
-        await _hubContext.Clients.All.SendAsync("SendBid", newBid);
-        return Ok(newBid);
+            return BadRequest();
+        }
+        var userP = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+        var user = _context.Set<User>().FirstOrDefault(u => u.Auth0Id == userP);
+        if (user == null) return StatusCode((int)HttpStatusCode.Forbidden);
+        var bid = await _bidService.PostBid(value, auction, user);
+        if (bid == null) return BadRequest();
+        await _hubContext.Clients.All.SendAsync("SendBid", bid);
+        return Ok(bid);
     }
 
     [HttpDelete]
@@ -111,7 +117,7 @@ public class AuctionController : ControllerBase
         await _context.SaveChangesAsync();
         return Ok();
     }
-    
+
     [HttpPut]
     [Route("/Auctions/{id:int}")]
     public async Task<IActionResult> UpdateAuction(int id, [FromBody] Auction auction)
@@ -119,7 +125,8 @@ public class AuctionController : ControllerBase
         var requester = await _userService.GetUserByAuth0Id(User);
         var auctionToUpdate = await _context.Set<Auction>().FirstOrDefaultAsync(a => a.Id == id);
         if (auctionToUpdate == null) return NotFound();
-        if (auctionToUpdate.Owner.Id != requester.Id || !requester.IsAdmin) return StatusCode((int)HttpStatusCode.Forbidden);
+        if (auctionToUpdate.Owner.Id != requester.Id || !requester.IsAdmin)
+            return StatusCode((int)HttpStatusCode.Forbidden);
         auctionToUpdate.NameOfProduct = auction.NameOfProduct;
         auctionToUpdate.Description = auction.Description;
         auctionToUpdate.StartingPrice = auction.StartingPrice;
@@ -127,12 +134,11 @@ public class AuctionController : ControllerBase
         await _context.SaveChangesAsync();
         return Ok();
     }
-    
+
     [HttpPost]
     [Route("/Pay/{id:int}")]
     public async Task<IActionResult> Pay(int id)
     {
-        
         var auction = await _context.Set<Auction>().FirstOrDefaultAsync(a => a.Id == id);
         if (auction == null) return NotFound();
         if (!_auctionService.CheckAuctionForCompletion(auction)) return BadRequest();

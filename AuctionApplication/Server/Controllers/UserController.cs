@@ -57,4 +57,17 @@ public class UserController : ControllerBase
         await _context.SaveChangesAsync();
         return Ok();
     }
+    
+    [HttpGet]
+    [Route("/Users/{id:int}/WonAuctions")]
+    public async Task<IActionResult> GetWonAuctions(int id)
+    {
+        var user = await _context.Set<User>().FirstOrDefaultAsync(a => a.Id == id);
+        if (user == null)
+        {
+            return NotFound();
+        }
+        var auctions = await _context.Set<Auction>().Where(a => a.Winner == user).ToListAsync();
+        return Ok(auctions);
+    }
 }
