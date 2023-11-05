@@ -2,8 +2,17 @@
 
 public class Payment : BaseEntity
 {
-    public Auction Auction { get; set; } = new();
-    public User User { get; set; } = new();
-    public decimal Amount { get; set; } = new();
-    public PaymentState State { get; set; } = new();
+    public Auction Auction { get; set; }
+    
+    public User User { get; set; }
+    
+    public Decimal Value { get; set; }
+
+    public PaymentState State { get; set; } = PaymentState.New;
+    
+    public DateTime DateCreated { get; set; }
+
+    public DateTime? DateRegisterd { get; set; } = null;
+    
+    public DateTime? DatePaid { get; set; }  = null;
 }

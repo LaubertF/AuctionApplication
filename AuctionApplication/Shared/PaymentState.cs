@@ -3,6 +3,6 @@
 public enum PaymentState
 {
     New,
-    Recorded,
-    Paid,
+    Registerd,
+    Paid
 }

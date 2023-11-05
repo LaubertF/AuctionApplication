@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using AuctionApplication.Database;
 using AuctionApplication.Server.Business;
 using AuctionApplication.Server.Hubs;
@@ -25,7 +24,6 @@ builder.Services.AddScoped<EfRepository<User>>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<BidService>();
 builder.Services.AddScoped<AuctionService>();
-
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, c =>
     {

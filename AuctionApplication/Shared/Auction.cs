@@ -12,6 +12,7 @@ public class Auction : BaseEntity
     [DataType(DataType.Text)]
     public string Description { get; set; } = string.Empty;
 
+    [Required]
     [DataType(DataType.Currency)]
     [Range(0, double.MaxValue, ErrorMessage = "Starting price cannot be negative.")]
     public decimal StartingPrice { get; set; }

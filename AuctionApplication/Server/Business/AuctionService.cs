@@ -6,10 +6,22 @@ namespace AuctionApplication.Server.Business;
 public class AuctionService
 {
     private readonly DbContext _context;
+    
 
     public AuctionService(DbContext context)
     {
         _context = context;
+    }
+
+    public async Task<decimal> GetMinBidValueForAuctionAsync(int auctionId)
+    {
+        var auction = await _context.Set<Auction>().FirstAsync(a => a.Id == auctionId);
+
+        var bids = await _context.Set<Bid>()
+            .Where(b => b.Auction.Id == auctionId)
+            .ToListAsync();
+
+        return bids.Any() ? bids.Max(b => b.Value) : auction.StartingPrice;
     }
 
     public async Task CheckAuctionsForCompletion()
@@ -20,6 +32,7 @@ public class AuctionService
             CheckAuctionForCompletion(auction);
         }
     }
+    
 
     /**
      * Returns true if the auction is completed, false otherwise.
@@ -28,7 +41,8 @@ public class AuctionService
     {
         if (auction.EndInclusive >= DateTime.UtcNow) return false;
         if (auction.Winner != null) return true;
-        var topBid = _context.Set<Bid>().Where(b => b.Auction.Id == auction.Id).Include(b => b.Bidder).ToList().MaxBy(b => b.Value);
+        var topBid = _context.Set<Bid>().Where(b => b.Auction.Id == auction.Id).Include(b => b.Bidder).ToList()
+            .MaxBy(b => b.Value);
         if (topBid == null)
         {
             return true;

@@ -164,7 +164,7 @@ a, .btn-link {
     border-radius: 15px;
 }
 
-.card{
+.card:not(.payment-card){
     border-radius: 15px;
     transition: all 0.4s;
 }
@@ -176,7 +176,7 @@ a, .btn-link {
     border-bottom-left-radius: 15px !important;
     border-bottom-right-radius: 15px !important;
 }
-.card:hover{
+.card:not(.payment-card):hover{
     transform: scale(1.10);
 }
 .navbar-special{
@@ -204,5 +204,11 @@ a, .btn-link {
 
 .nav-link{
     padding: 0.5rem !important;
+}
+
+#bid-list-group{
+    height: 20rem;
+    overflow-x: hidden;
+    overflow-y: scroll;
 }
 
