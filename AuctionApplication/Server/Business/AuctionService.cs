@@ -28,7 +28,7 @@ public class AuctionService
     {
         if (auction.EndInclusive >= DateTime.UtcNow) return false;
         if (auction.Winner != null) return true;
-        var topBid = _context.Set<Bid>().Where(b => b.Auction == auction).MaxBy(b => b.Value);
+        var topBid = _context.Set<Bid>().Where(b => b.Auction.Id == auction.Id).Include(b => b.Bidder).ToList().MaxBy(b => b.Value);
         if (topBid == null)
         {
             return true;
