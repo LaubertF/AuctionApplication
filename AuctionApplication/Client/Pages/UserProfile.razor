@@ -1,5 +1,15 @@
-﻿@page "/profile"
+﻿@using AuctionApplication.Client.Services
+@inject AppStateService appState
 @attribute [Authorize]
+@page "/profile"
+
+@if (appState != null && appState.ToastMessage != null)
+{
+    <div class="d-flex justify-content-center alert alert-@appState.ToastType alert-dismissible fade show" role="alert">
+        @appState.ToastMessage
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
 
 <h3 class="fw-bold mb-4">Your profile</h3>
 <div class="container">

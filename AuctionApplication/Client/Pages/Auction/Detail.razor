@@ -360,7 +360,22 @@
             var responseContent = await response.Content.ReadAsStringAsync();
             if (response.IsSuccessStatusCode)
             {
-                await JSRuntime.InvokeVoidAsync("closeModal", "buyoutModal");
+                try
+                {
+                    await JSRuntime.InvokeVoidAsync("closeModal", "buyoutModal");
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Could not close modal");
+                }
+                try
+                {
+                    await JSRuntime.InvokeVoidAsync("removeBackdrop");
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Could not remove backdrop");
+                }
                 toasts.Add(new Toast { Type = "success", Show = "page", Message = $"Success!" });
                 navigateToPayment = true;
             }
@@ -371,6 +386,8 @@
         }
         if (navigateToPayment)
         {
+            appState.ToastMessage = null;
+            appState.ToastType = null;
             NavigationManager.NavigateTo($"/auction/detail/{id}/payment");
         }
         

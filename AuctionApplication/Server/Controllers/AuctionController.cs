@@ -209,8 +209,54 @@ public class AuctionController : ControllerBase
             return NotFound($"Payment for auction with ID {id} does not exist");
         }
 
+        if (payment.State == PaymentState.Registered)
+        {
+            return BadRequest($"Payment was already registered!");
+        }
+        
+        if (payment.State == PaymentState.Paid)
+        {
+            return BadRequest($"The auction was already paid for!");
+        }
+        
+        return Ok(new PaymentData
+        {
+            Id = payment.Id,
+            Value = payment.Value,
+            NameOfProduct = payment.Auction.NameOfProduct
+        });
+    }
+
+    [HttpPost]
+    [Route("/Payments/{id:int}")]
+    public async Task<ObjectResult> PostPaymentById(int id, [FromBody] decimal value)
+    {
+        Payment payment;
+        try
+        {
+            payment = await _context.Set<Payment>()
+                .FirstAsync(a => a.Id == id);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+            return NotFound($"Payment detail with ID {id} does not exist.");
+        }
+
+        try
+        {
+            payment.State = PaymentState.Registered;
+            payment.DateRegisterd = DateTime.Now;
+            await _context.SaveChangesAsync();
+        }
+        catch (Exception e)
+        {
+            return NotFound($"Payment was not successfull");
+        }
+
         return Ok(payment);
     }
+
 
     [HttpDelete]
     [Route("/Auctions/{id:int}")]
