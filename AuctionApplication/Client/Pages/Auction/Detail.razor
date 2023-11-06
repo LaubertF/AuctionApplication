@@ -295,7 +295,7 @@
             if (bidData.AuctionId == id)
             {
                 var bidderName = String.IsNullOrEmpty(bidData.BidderName) ? "Unknown user" : bidData.BidderName;
-                bidList.Insert(0, new MarkupString($"{bidderName} has bid <b>{bidData.Value} €</b> on {bidData.Time}"));
+                bidList.Insert(0, new MarkupString($"User {bidderName} has bid <b>{bidData.Value} €</b> on {bidData.Time}"));
                 detailBid.Value = auction.StartingPrice + (decimal)0.01;
                 auction.StartingPrice = bidData.Value;
                 InvokeAsync(StateHasChanged);
@@ -314,7 +314,7 @@
                         auction.StartingPrice = bidData.Value;
                     }
                     var bidderName = String.IsNullOrEmpty(bidData.BidderName) ? "Unknown user" : bidData.BidderName;
-                    bidList.Add(new MarkupString($"{bidderName} has bid <b>{bidData.Value} €</b> on {bidData.Time}"));
+                    bidList.Add(new MarkupString($"User {bidderName} has bid <b>{bidData.Value} €</b> on {bidData.Time}"));
                     i++;
                 }
             }
