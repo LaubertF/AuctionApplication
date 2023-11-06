@@ -179,6 +179,9 @@ a, .btn-link {
 .card:not(.payment-card):hover{
     transform: scale(1.10);
 }
+.card-scale-sm:hover{
+    transform: scale(1.06) !important;
+}
 .navbar-special{
     transition: all 0.4s;
     border-radius: 15px !important;
@@ -200,6 +203,12 @@ a, .btn-link {
     color:#000 !important;
     background-color:#0dcaf0 !important;
     border-color:#0dcaf0!important;
+}
+.table-hover>tbody>tr{
+    transition: all 0.4s;
+}
+.table-hover>tbody>tr:hover{
+    transform: scale(1.01);
 }
 
 .nav-link{
