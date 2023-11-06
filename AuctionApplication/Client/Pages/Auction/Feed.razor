@@ -9,24 +9,12 @@
             <div class="bg-light element-round p-3 mt-4 mb-1">
                 <h6 class="card-title fw-bold mb-3">Categories</h6>
                 <div class="row row-cols-auto g-1">
-                    <div class="col">
-                        <button class="btn-sm btn-outline-primary button-round ms-2">Handmade</button>
-                    </div>
-                    <div class="col">
-                        <button class="btn-sm btn-outline-primary button-round ms-2">Paintings</button>
-                    </div>
-                    <div class="col">
-                        <button class="btn-sm btn-outline-primary button-round ms-2">Electronics</button>
-                    </div>
-                    <div class="col">
-                        <button class="btn-sm btn-outline-primary button-round ms-2">Cars</button>
-                    </div>
-                    <div class="col">
-                        <button class="btn-sm btn-outline-primary button-round ms-2">Antiques</button>
-                    </div>
-                    <div class="col">
-                        <button class="btn-sm btn-outline-primary button-round ms-2">Bijouterie</button>
-                    </div>
+                    @foreach (AuctionCategory category in Enum.GetValues(typeof(AuctionCategory)))
+                        {
+                            <div class="col">
+                                <button class="btn-sm btn-outline-primary button-round ms-2">@category.ToString()</button>
+                            </div>
+                        }
                 </div>
             </div>
         </div>
