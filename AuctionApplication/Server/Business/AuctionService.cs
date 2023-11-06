@@ -54,7 +54,7 @@ public class AuctionService
         {
             Auction = auction,
             User = auction.Winner,
-            Amount = topBid.Value,
+            Value = topBid.Value,
             State = PaymentState.New
         };
 
