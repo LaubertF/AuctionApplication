@@ -3,7 +3,7 @@ using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-public class PaymentData
+public class PaymentDto
 {
     [JsonPropertyName("Id")]
     public int Id { get; set; }

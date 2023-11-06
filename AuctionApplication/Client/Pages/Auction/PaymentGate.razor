@@ -184,7 +184,7 @@
     [Parameter]
     public int id { get; set; }
 
-    private PaymentData? payment;
+    private PaymentDto? payment;
     private List<Toast> toasts = new List<Toast>();
     PaymentGateData paymentGateData = new PaymentGateData();
     
@@ -195,7 +195,7 @@
 
         if (response.IsSuccessStatusCode)
         {
-            payment = JsonSerializer.Deserialize<PaymentData>(content, new JsonSerializerOptions
+            payment = JsonSerializer.Deserialize<PaymentDto>(content, new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true, // Make property names case-insensitive
                 Converters = { new JsonStringEnumConverter() } // Handle enum serialization/deserialization

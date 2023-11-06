@@ -90,7 +90,7 @@
                             }
                             <li class="list-group-item">
                                 <span class="fw-bold">Created by: </span>
-                                <span class="fw-bolder">@auction.Owner.Name</span>
+                                <span class="fw-lighter">@auction.Owner.Name</span>
                             </li>
                             <li class="list-group-item">
                                 <div class="fw-bold">Category: </div>
@@ -290,7 +290,7 @@
             .WithUrl(NavigationManager.ToAbsoluteUri("/chathub"))
             .Build();
 
-        hubConnection.On<BidData>("SendBid", (bidData) =>
+        hubConnection.On<BidDto>("SendBid", (bidData) =>
         {
             if (bidData.AuctionId == id)
             {
@@ -301,7 +301,7 @@
                 InvokeAsync(StateHasChanged);
             }
         });
-        hubConnection.On<List<BidData>>("ReceiveBids", (bids) =>
+        hubConnection.On<List<BidDto>>("ReceiveBids", (bids) =>
         {
             var i = 0;
             foreach (var bidData in bids)

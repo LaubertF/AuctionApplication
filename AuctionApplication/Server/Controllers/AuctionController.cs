@@ -72,6 +72,7 @@ public class AuctionController : ControllerBase
         {
             auction = await _context.Set<Auction>()
                 .Include(a => a.ProductImages)
+                .Include(a => a.Owner)
                 .FirstAsync(a => a.Id == id);
         }
         catch (Exception e)
@@ -101,6 +102,11 @@ public class AuctionController : ControllerBase
         if (auction == null) return NotFound();
         var user = await _userService.GetUserByAuth0Id(User);
 
+        if (auction.Owner == user)
+        {
+            return BadRequest($"You cannot bid on your own auction");
+        }
+
         var minBidValue = await _auctionService.GetMinBidValueForAuctionAsync(id);
         if (value <= minBidValue)
         {
@@ -117,7 +123,7 @@ public class AuctionController : ControllerBase
         await _context.Set<Bid>().AddAsync(newBid);
         await _context.SaveChangesAsync();
 
-        var bidData = new BidData
+        var bidData = new BidDto
         {
             AuctionId = auction.Id,
             BidderName = user.Name,
@@ -142,6 +148,11 @@ public class AuctionController : ControllerBase
         try
         {
             var winner = await _userService.GetUserByAuth0Id(User);
+            
+            if (auction.Owner == winner)
+            {
+                return BadRequest($"You cannot buy your own auction");
+            }
 
             auction.Winner = winner;
             auction.IsClosed = true;
@@ -219,7 +230,7 @@ public class AuctionController : ControllerBase
             return BadRequest($"The auction was already paid for!");
         }
         
-        return Ok(new PaymentData
+        return Ok(new PaymentDto
         {
             Id = payment.Id,
             Value = payment.Value,
