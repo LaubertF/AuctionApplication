@@ -275,6 +275,7 @@
             });
             detailBid.Value = auction.StartingPrice + (decimal)0.01;
             status = new Status();
+            UpdateTime();
             var timer = new Timer(UpdateTime, null, 0, 500);
         }
         else
@@ -412,7 +413,7 @@
                 status.Title = "ACTIVE";
                 status.TimerTitle = "Time until end:";
             }
-            else if ((auction.EndInclusive > now && status.Id != 3) || auction.IsClosed == true)
+            else if ((auction.EndInclusive < now && status.Id != 3) || auction.IsClosed == true)
             {
                 status.Id = 3;
                 status.Color = "danger";

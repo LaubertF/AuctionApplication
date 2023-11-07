@@ -26,7 +26,7 @@
                 <div class="row py-1">
                     <div class="form-floating">
                         <InputText id="title" @bind-Value="@auction.NameOfProduct" class="form-control" placeholder></InputText>
-                        <label for="title" class="ms-3">Title</label>
+                        <label for="title" class="ms-3">Title *</label>
                         <ValidationMessage For="() => auction.NameOfProduct"/>
                     </div>
                 </div>
@@ -35,7 +35,7 @@
                         <InputTextArea id="description" @bind-Value="@auction.Description" class="form-control" placeholder
                                        style="height: 20rem">
                         </InputTextArea>
-                        <label for="description" class="ms-3">Description </label>
+                        <label for="description" class="ms-3">Description *</label>
                         <ValidationMessage For="() => auction.Description"/>
                     </div>
                 </div>
@@ -48,7 +48,7 @@
                                     <option value="@category">@category</option>
                                 }
                             </InputSelect>
-                            <label for="start-date" class="">Category</label>
+                            <label for="start-date" class="">Category *</label>
                         </div>
                     </div>
                 </div>
@@ -60,7 +60,7 @@
                             <InputDate Type="InputDateType.DateTimeLocal" id="start-date" @bind-Value="@auction.StartInclusive"
                                        class="form-control" placeholder>
                             </InputDate>
-                            <label for="start-date" class="">Start date</label>
+                            <label for="start-date" class="">Start date *</label>
                             <ValidationMessage For="() => auction.StartInclusive"/>
                         </div>
                     </div>
@@ -69,7 +69,7 @@
                             <InputDate Type="InputDateType.DateTimeLocal" id="end-date" @bind-Value="@auction.EndInclusive"
                                        class="form-control" placeholder>
                             </InputDate>
-                            <label for="end-date" class="">End date</label>
+                            <label for="end-date" class="">End date *</label>
                             <ValidationMessage For="() => auction.EndInclusive"/>
                         </div>
                     </div>
@@ -78,7 +78,7 @@
                     <div class="col-6">
                         <div class="form-floating">
                             <InputNumber id="start-price" @bind-Value=@auction.StartingPrice @bind-Value:format="F2" class="form-control" placeholder/>
-                            <label for="start-price" class="">Starting price (€)</label>
+                            <label for="start-price" class="">Starting price (€) *</label>
                             <ValidationMessage For="() => auction.StartingPrice"/>
                         </div>
                     </div>
@@ -93,10 +93,14 @@
                 </div>
                 <div class="row py-1">
                     <div class="col-6">
-                        <label for="images" class="form-label">Choose images</label>
+                        <label for="images" class="form-label">Choose images *</label>
                         <InputFile id="images" class="form-control form-control-sm" multiple
                                    accept="image/png, image/jpeg, image/gif" OnChange="OnChange">
-                        </InputFile>
+                        </InputFile>  
+                        @if (imageChange && auction.ProductImages.Count == 0)
+                        {
+                            <div class="validation-message">At least one product image is required.</div>
+                        }
                     </div>
                 </div>
                 <div class="row py-1">
@@ -148,9 +152,11 @@
 @code {
     Auction? auction = new Auction();
     String? errorMessage;
+    Boolean imageChange = false;
 
     private async Task OnChange(InputFileChangeEventArgs e)
     {
+        imageChange = true;
         auction.ProductImages = new List<ProductImage>();
         foreach (var file in e.GetMultipleFiles())
         {
@@ -178,12 +184,15 @@
             var imageDataUrl = $"data:{file.ContentType};base64,{Convert.ToBase64String(buffer)}";
             auction.ProductImages.Add(new ProductImage { Base64 = imageDataUrl });
         }
+        
     }
 
     private async Task FormSubmitted(EditContext editContext)
     {
         bool formIsValid = editContext.Validate();
-        if (formIsValid)
+        imageChange = true;
+        bool reqImage = auction.ProductImages.Count > 0;
+        if (formIsValid && reqImage)
         {
             var response = await Http.PostAsJsonAsync("/Auctions/Create", auction);
             var responseContent = await response.Content.ReadAsStringAsync();

@@ -91,6 +91,8 @@ public class AuctionController : ControllerBase
             return NotFound($"Could not get minimal starting bid value");
         }
 
+        _auctionService.CheckAuctionForCompletion(auction);
+
         return Ok(auction);
     }
 
