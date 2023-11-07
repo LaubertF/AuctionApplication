@@ -183,6 +183,7 @@ a, .btn-link {
     transform: scale(1.06) !important;
 }
 .navbar-special{
+    background-color: #eeeeee !important;
     transition: all 0.4s;
     border-radius: 15px !important;
     margin-bottom: 3rem !important;
@@ -196,13 +197,30 @@ a, .btn-link {
     vertical-align: middle;
 }
 .button-outline{
-    color:#0dcaf0 !important;
-    border-color:#0dcaf0 !important;
+    transition: all 0.4s;
+    color:#0d6efd !important;
+    border-right-width: 0.2rem !important;
+    border-bottom-width: 0.2rem !important;
+    border-left-width: 0.1rem !important;
+    border-top-width: 0.1rem !important;
+    background-color: #e8e8e8 !important;
+    border-bottom-color: #0a58ca !important;
+    border-right-color: #0a58ca !important;
+    border-left-color: #0d6efd !important;
+    border-top-color: #0d6efd !important;
 }
 .button-outline:hover{
-    color:#000 !important;
-    background-color:#0dcaf0 !important;
-    border-color:#0dcaf0!important;
+    transform: scale(1.01);
+    color: #ffffff !important;
+    border-right-width: 0.1rem !important;
+    border-bottom-width: 0.1rem !important;
+    border-left-width: 0.2rem !important;
+    border-top-width: 0.2rem !important;
+    background-color: #0d6efd !important;
+    border-bottom-color: #0d6efd !important;
+    border-right-color: #0d6efd !important;
+    border-left-color: #0a58ca !important;
+    border-top-color: #0a58ca !important;
 }
 .table-hover>tbody>tr{
     transition: all 0.4s;

@@ -43,7 +43,24 @@ public class AuctionController : ControllerBase
     [Route("/Auctions")]
     public async Task<IList<Auction>> Get()
     {
-        return await _auctionRepository.ListAsync();
+        await _auctionService.CheckAuctionsForCompletion();
+        var auctions = await _context.Set<Auction>()
+            .Include(b=> b.ProductImages)
+            .Include(a => a.Owner)
+            .Select(auction => new Auction
+            {
+                Id = auction.Id,
+                NameOfProduct = auction.NameOfProduct,
+                Category = auction.Category,
+                StartingPrice = auction.StartingPrice,
+                ProductImages = auction.ProductImages,
+                Owner = auction.Owner,
+                IsClosed = auction.IsClosed,
+                Winner = auction.Winner
+            }).ToListAsync();
+        
+        
+        return auctions;
     }
 
     [HttpPost]

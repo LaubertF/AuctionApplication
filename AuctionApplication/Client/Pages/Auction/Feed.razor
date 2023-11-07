@@ -1,5 +1,10 @@
 ﻿@page "/auction/feed"
 @using AuctionApplication.Shared
+@using System.Net
+@using System.Text.Json
+@using System.Text.Json.Serialization
+@attribute [Authorize]
+@inject HttpClient Http
 
 <h3 class="fw-bold mb-4">Explore Items</h3>
 
@@ -18,8 +23,8 @@
                 </div>
             </div>
         </div>
-        <nav class="navbar navbar-special navbar-light justify-content-between p-3 m-2 shadow" style="background-color: #e3f2fd">
-            <button class="button-outline btn-outline-info navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggleExternalContent" aria-controls="navbarToggleExternalContent" aria-expanded="false" aria-label="Toggle navigation">
+        <nav class="navbar navbar-special navbar-dark justify-content-between p-3 m-2 shadow" style="background-color: #e3f2fd">
+            <button class="button-outline btn-outline-primary navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggleExternalContent" aria-controls="navbarToggleExternalContent" aria-expanded="false" aria-label="Toggle navigation">
                 <i class="bi bi-funnel"></i>
             </button>
             <div class="row row-cols-auto g-1">
@@ -27,260 +32,117 @@
                 <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
               </div>
               <div class="col">
-                <button class="btn btn-outline-info ms-1" type="submit"><i class="bi bi-search"></i></button>
+                <button class="btn-sm btn-outline btn-outline-primary ms-1" type="submit"><i class="bi bi-search"></i></button>
               </div>
             </div>
         </nav>
     </div>
-
-    <div class="row g-5">
-        <div class="col-12 col-md-6 col-xl-3">
-            <div class="card shadow">
-                <div class="card-header text-center justify-content-center align-items-center">
-                    <h6 class="card-title fw-bold"><i class="bi bi-clock-history mx-2"></i>15:23:02</h6>
-                </div>
-                <a class="ratio ratio-1x1" href="/auction/create"><img src="FlowerFrenzy-25.jpg" alt="Flower" class="card-img-top"/></a>
-                <div class="card-body">
-                    <h6 class="card-title fw-bold mb-4">A very nice Flower </h6>
-                    <div class="row">
-                        <div class="col-6">
-                            <h6 class="card-subtitle text-small text-muted text-start">Category</h6>
-                        </div>
-                        <div class="col-6">
-                            <h6 class="card-subtitle text-small text-end">Art</h6>
-                        </div>
-                    </div>
-                    <hr class="bg-primary border-2 border-top border-primary"/>
-                    <div class="row">
-                        <div class="col-6">
-                            <h6 class="card-subtitle text-small text-muted text-start">Highest Bid</h6>
-                        </div>
-                        <div class="col-6">
-                            <h6 class="card-subtitle text-small fw-bolder text-end">23400 €</h6>
-                        </div>
-                    </div>
-                    <hr class="bg-primary border-2 border-top border-primary"/>
-                    <div class="row">
-                        <div class="col-6">
-                            <h6 class="card-subtitle text-small text-muted text-start">Seller</h6>
-                        </div>
-                        <div class="col-6">
-                            <h6 class="card-subtitle text-small text-end">Eugen_Alpha</h6>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <small class="text-extra-small text-muted">Last updated 10 mins ago</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 col-md-6 col-xl-3">
-            <div class="card shadow">
-                <div class="card-header text-center justify-content-center align-items-center">
-                    <h6 class="card-title fw-bold"><i class="bi bi-clock-history mx-2"></i>15:23:02</h6>
-                </div>
-                <a class="ratio ratio-1x1" href="/auction/create"><img src="FlowerFrenzy-25.jpg" alt="Flower" class="card-img-top"/></a>
-                <div class="card-body">
-                    <h6 class="card-title fw-bold mb-4">A very nice Flower </h6>
-                    <div class="row">
-                        <div class="col-6">
-                            <h6 class="card-subtitle text-small text-muted text-start">Category</h6>
-                        </div>
-                        <div class="col-6">
-                            <h6 class="card-subtitle text-small text-end">Art</h6>
-                        </div>
-                    </div>
-                    <hr class="bg-primary border-2 border-top border-primary" />
-                    <div class="row">
-                        <div class="col-6">
-                            <h6 class="card-subtitle text-small text-muted text-start">Highest Bid</h6>
-                        </div>
-                        <div class="col-6">
-                            <h6 class="card-subtitle text-small fw-bolder text-end">23400 €</h6>
-                        </div>
-                    </div>
-                    <hr class="bg-primary border-2 border-top border-primary" />
-                    <div class="row">
-                        <div class="col-6">
-                            <h6 class="card-subtitle text-small text-muted text-start">Seller</h6>
-                        </div>
-                        <div class="col-6">
-                            <h6 class="card-subtitle text-small text-end">Eugen_Alpha</h6>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <small class="text-extra-small text-muted">Last updated 10 mins ago</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 col-md-6 col-xl-3">
-            <div class="card shadow">
-                <div class="card-header text-center justify-content-center align-items-center">
-                    <h6 class="card-title fw-bold"><i class="bi bi-clock-history mx-2"></i>15:23:02</h6>
-                </div>
-                <a class="ratio ratio-1x1" href="/auction/create"><img src="FlowerFrenzy-25.jpg" alt="Flower" class="card-img-top"/></a>
-                <div class="card-body">
-                    <h6 class="card-title fw-bold mb-4">A very nice Flower </h6>
-                    <div class="row">
-                        <div class="col-6">
-                            <h6 class="card-subtitle text-small text-muted text-start">Category</h6>
-                        </div>
-                        <div class="col-6">
-                            <h6 class="card-subtitle text-small text-end">Art</h6>
-                        </div>
-                    </div>
-                    <hr class="bg-primary border-2 border-top border-primary" />
-                    <div class="row">
-                        <div class="col-6">
-                            <h6 class="card-subtitle text-small text-muted text-start">Highest Bid</h6>
-                        </div>
-                        <div class="col-6">
-                            <h6 class="card-subtitle text-small fw-bolder text-end">23400 €</h6>
-                        </div>
-                    </div>
-                    <hr class="bg-primary border-2 border-top border-primary" />
-                    <div class="row">
-                        <div class="col-6">
-                            <h6 class="card-subtitle text-small text-muted text-start">Seller</h6>
-                        </div>
-                        <div class="col-6">
-                            <h6 class="card-subtitle text-small text-end">Eugen_Alpha</h6>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <small class="text-extra-small text-muted">Last updated 10 mins ago</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 col-md-6 col-xl-3">
-            <div class="card shadow">
-                <div class="card-header text-center justify-content-center align-items-center">
-                    <h6 class="card-title fw-bold"><i class="bi bi-clock-history mx-2"></i>15:23:02</h6>
-                </div>
-                <a class="ratio ratio-1x1" href="/auction/create"><img src="FlowerFrenzy-25.jpg" alt="Flower" class="card-img-top"/></a>
-                <div class="card-body">
-                    <h6 class="card-title fw-bold mb-4">A very nice Flower </h6>
-                    <div class="row">
-                        <div class="col-6">
-                            <h6 class="card-subtitle text-small text-muted text-start">Category</h6>
-                        </div>
-                        <div class="col-6">
-                            <h6 class="card-subtitle text-small text-end">Art</h6>
-                        </div>
-                    </div>
-                    <hr class="bg-primary border-2 border-top border-primary" />
-                    <div class="row">
-                        <div class="col-6">
-                            <h6 class="card-subtitle text-small text-muted text-start">Highest Bid</h6>
-                        </div>
-                        <div class="col-6">
-                            <h6 class="card-subtitle text-small fw-bolder text-end">23400 €</h6>
-                        </div>
-                    </div>
-                    <hr class="bg-primary border-2 border-top border-primary" />
-                    <div class="row">
-                        <div class="col-6">
-                            <h6 class="card-subtitle text-small text-muted text-start">Seller</h6>
-                        </div>
-                        <div class="col-6">
-                            <h6 class="card-subtitle text-small text-end">Eugen_Alpha</h6>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <small class="text-extra-small text-muted">Last updated 10 mins ago</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 col-md-6 col-xl-3">
-            <div class="card shadow">
-                <div class="card-header text-center justify-content-center align-items-center">
-                    <h6 class="card-title fw-bold"><i class="bi bi-clock-history mx-2"></i>15:23:02</h6>
-                </div>
-                <a class="ratio ratio-1x1" href="/auction/create"><img src="FlowerFrenzy-25.jpg" alt="Flower" class="card-img-top"/></a>
-                <div class="card-body">
-                    <h6 class="card-title fw-bold mb-4">A very nice Flower </h6>
-                    <div class="row">
-                        <div class="col-6">
-                            <h6 class="card-subtitle text-small text-muted text-start">Category</h6>
-                        </div>
-                        <div class="col-6">
-                            <h6 class="card-subtitle text-small text-end">Art</h6>
-                        </div>
-                    </div>
-                    <hr class="bg-primary border-2 border-top border-primary" />
-                    <div class="row">
-                        <div class="col-6">
-                            <h6 class="card-subtitle text-small text-muted text-start">Highest Bid</h6>
-                        </div>
-                        <div class="col-6">
-                            <h6 class="card-subtitle text-small fw-bolder text-end">23400 €</h6>
-                        </div>
-                    </div>
-                    <hr class="bg-primary border-2 border-top border-primary" />
-                    <div class="row">
-                        <div class="col-6">
-                            <h6 class="card-subtitle text-small text-muted text-start">Seller</h6>
-                        </div>
-                        <div class="col-6">
-                            <h6 class="card-subtitle text-small text-end">Eugen_Alpha</h6>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <small class="text-extra-small text-muted">Last updated 10 mins ago</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 col-md-6 col-xl-3">
-            <div class="card shadow">
-                <div class="card-header text-center justify-content-center align-items-center">
-                    <h6 class="card-title fw-bold"><i class="bi bi-clock-history mx-2"></i>15:23:02</h6>
-                </div>
-                <a class="ratio ratio-1x1" href="/auction/create"><img src="FlowerFrenzy-25.jpg" alt="Flower" class="card-img-top"/></a>
-                <div class="card-body">
-                    <h6 class="card-title fw-bold mb-4">A very nice Flower </h6>
-                    <div class="row">
-                        <div class="col-6">
-                            <h6 class="card-subtitle text-small text-muted text-start">Category</h6>
-                        </div>
-                        <div class="col-6">
-                            <h6 class="card-subtitle text-small text-end">Art</h6>
-                        </div>
-                    </div>
-                    <hr class="bg-primary border-2 border-top border-primary"/>
-                    <div class="row">
-                        <div class="col-6">
-                            <h6 class="card-subtitle text-small text-muted text-start">Highest Bid</h6>
-                        </div>
-                        <div class="col-6">
-                            <h6 class="card-subtitle text-small fw-bolder text-end">23400 €</h6>
-                        </div>
-                    </div>
-                    <hr class="bg-primary border-2 border-top border-primary"/>
-                    <div class="row">
-                        <div class="col-6">
-                            <h6 class="card-subtitle text-small text-muted text-start">Seller</h6>
-                        </div>
-                        <div class="col-6">
-                            <h6 class="card-subtitle text-small text-end">Eugen_Alpha</h6>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <small class="text-extra-small text-muted">Last updated 10 mins ago</small>
-                </div>
-            </div>
-        </div>
     
-    
+    @if (auctions != null)
+    {
         
-        
-    </div>
+        <div class="row g-5">
+            @foreach (var auction in auctions)
+            {
+                @if (auction.IsClosed == false)
+                {
+                    <div class="col-12 col-md-6 col-xl-3">
+                        <div class="card shadow">
+                            <div class="card-header text-center justify-content-center align-items-center">
+                                <h6 class="card-title fw-bold"><i class="bi bi-clock-history mx-2"></i>15:23:02</h6>
+                            </div>
+                        
+                            @if (auction.ProductImages.Count == 0)
+                            {
+                                <a class="ratio ratio-1x1" href="/auction/detail/@auction.Id"><img src="placeholder.png" alt="Flower" class="card-img-top"/></a>
+                            }
+                            else
+                            {
+                                @for (var j = 0; j < auction.ProductImages.Count; j++)
+                                {
+                                    <a class="ratio ratio-1x1" href="/auction/detail/@auction.Id"><img src="@auction.ProductImages[j].Base64" alt="Flower" class="card-img-top"/></a>
+                                    break;
+                                }
+                            }
+                  
+                            <div class="card-body">
+                                <h6 class="card-title fw-bold mb-4">@auction.NameOfProduct</h6>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <h6 class="card-subtitle text-small text-muted text-start">Category</h6>
+                                    </div>
+                                    <div class="col-6">
+                                        <h6 class="card-subtitle text-small text-end">@auction.Category</h6>
+                                    </div>
+                                </div>
+                                <hr class="bg-primary border-2 border-top border-primary"/>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <h6 class="card-subtitle text-small text-muted text-start">Starting Price</h6>
+                                    </div>
+                                    <div class="col-6">
+                                        <h6 class="card-subtitle text-small fw-bolder text-end">@auction.StartingPrice €</h6>
+                                    </div>
+                                </div>
+                                <hr class="bg-primary border-2 border-top border-primary"/>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <h6 class="card-subtitle text-small text-muted text-start">Seller</h6>
+                                    </div>
+                                    <div class="col-6">
+                                        <h6 class="card-subtitle text-small text-end">@auction.Owner.Name</h6>
+                                    </div>
+                                </div>
+                            </div>
+                            @* <div class="card-footer"> *@
+                            @*     <small class="text-extra-small text-muted">Last updated 10 mins ago</small> *@
+                            @* </div> *@
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    }
+    else
+    {
+        <h6 class="card-title fw-bold mb-4">Loading...</h6>
+    }
 </div>
+    
 
 
 @code {
+    private IList<Auction>? auctions;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var response = await Http.GetAsync("/Auctions");
+            if (response.IsSuccessStatusCode)
+            {
+                Console.WriteLine("BEFORE");
+                var contentStream = await response.Content.ReadAsStreamAsync();
+                
+                var rawContent = await response.Content.ReadAsStringAsync();
+                Console.WriteLine(rawContent);
+                
+                auctions = await JsonSerializer.DeserializeAsync<IList<Auction>>(contentStream, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true, // Make property names case-insensitive
+                    Converters = { new JsonStringEnumConverter() } // Handle enum serialization/deserialization
+                });
+                foreach (var auction in auctions)
+                {
+                    Console.WriteLine("tuna");
+                    Console.WriteLine(auction.ProductImages.Count);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("CATCH");
+            Console.WriteLine(ex);
+        }
+    }
 }
