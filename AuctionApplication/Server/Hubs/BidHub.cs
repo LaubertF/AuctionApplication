@@ -46,10 +46,10 @@ public class BidHub : Hub
             .Where(b => b.Auction.Id == auctionId)
             .OrderByDescending(b => b.Time)
             .ToListAsync();
-        var bidList = new List<BidData>();
+        var bidList = new List<BidDto>();
         foreach (var bid in bids)
         {
-            bidList.Add(new BidData
+            bidList.Add(new BidDto
             {
                 AuctionId = bid.Auction.Id,
                 BidderName  = bid.Bidder.Name,

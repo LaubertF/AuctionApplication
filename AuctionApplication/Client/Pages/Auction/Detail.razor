@@ -90,7 +90,7 @@
                             }
                             <li class="list-group-item">
                                 <span class="fw-bold">Created by: </span>
-                                <span class="fw-bolder">@auction.Owner.Name</span>
+                                <span class="fw-lighter">@auction.Owner.Name</span>
                             </li>
                             <li class="list-group-item">
                                 <div class="fw-bold">Category: </div>
@@ -275,6 +275,7 @@
             });
             detailBid.Value = auction.StartingPrice + (decimal)0.01;
             status = new Status();
+            UpdateTime();
             var timer = new Timer(UpdateTime, null, 0, 500);
         }
         else
@@ -290,18 +291,18 @@
             .WithUrl(NavigationManager.ToAbsoluteUri("/chathub"))
             .Build();
 
-        hubConnection.On<BidData>("SendBid", (bidData) =>
+        hubConnection.On<BidDto>("SendBid", (bidData) =>
         {
             if (bidData.AuctionId == id)
             {
                 var bidderName = String.IsNullOrEmpty(bidData.BidderName) ? "Unknown user" : bidData.BidderName;
-                bidList.Insert(0, new MarkupString($"{bidderName} has bid <b>{bidData.Value} €</b> on {bidData.Time}"));
+                bidList.Insert(0, new MarkupString($"User {bidderName} has bid <b>{bidData.Value} €</b> on {bidData.Time}"));
                 detailBid.Value = auction.StartingPrice + (decimal)0.01;
                 auction.StartingPrice = bidData.Value;
                 InvokeAsync(StateHasChanged);
             }
         });
-        hubConnection.On<List<BidData>>("ReceiveBids", (bids) =>
+        hubConnection.On<List<BidDto>>("ReceiveBids", (bids) =>
         {
             var i = 0;
             foreach (var bidData in bids)
@@ -314,7 +315,7 @@
                         auction.StartingPrice = bidData.Value;
                     }
                     var bidderName = String.IsNullOrEmpty(bidData.BidderName) ? "Unknown user" : bidData.BidderName;
-                    bidList.Add(new MarkupString($"{bidderName} has bid <b>{bidData.Value} €</b> on {bidData.Time}"));
+                    bidList.Add(new MarkupString($"User {bidderName} has bid <b>{bidData.Value} €</b> on {bidData.Time}"));
                     i++;
                 }
             }
@@ -360,7 +361,22 @@
             var responseContent = await response.Content.ReadAsStringAsync();
             if (response.IsSuccessStatusCode)
             {
-                await JSRuntime.InvokeVoidAsync("closeModal", "buyoutModal");
+                try
+                {
+                    await JSRuntime.InvokeVoidAsync("closeModal", "buyoutModal");
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Could not close modal");
+                }
+                try
+                {
+                    await JSRuntime.InvokeVoidAsync("removeBackdrop");
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Could not remove backdrop");
+                }
                 toasts.Add(new Toast { Type = "success", Show = "page", Message = $"Success!" });
                 navigateToPayment = true;
             }
@@ -371,6 +387,8 @@
         }
         if (navigateToPayment)
         {
+            appState.ToastMessage = null;
+            appState.ToastType = null;
             NavigationManager.NavigateTo($"/auction/detail/{id}/payment");
         }
         
@@ -395,7 +413,7 @@
                 status.Title = "ACTIVE";
                 status.TimerTitle = "Time until end:";
             }
-            else if ((auction.EndInclusive > now && status.Id != 3) || auction.IsClosed == true)
+            else if ((auction.EndInclusive < now && status.Id != 3) || auction.IsClosed == true)
             {
                 status.Id = 3;
                 status.Color = "danger";

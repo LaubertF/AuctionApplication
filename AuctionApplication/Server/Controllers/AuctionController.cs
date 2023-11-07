@@ -89,6 +89,7 @@ public class AuctionController : ControllerBase
         {
             auction = await _context.Set<Auction>()
                 .Include(a => a.ProductImages)
+                .Include(a => a.Owner)
                 .FirstAsync(a => a.Id == id);
         }
         catch (Exception e)
@@ -107,6 +108,8 @@ public class AuctionController : ControllerBase
             return NotFound($"Could not get minimal starting bid value");
         }
 
+        _auctionService.CheckAuctionForCompletion(auction);
+
         return Ok(auction);
     }
 
@@ -117,6 +120,11 @@ public class AuctionController : ControllerBase
         var auction = await _context.Set<Auction>().FirstOrDefaultAsync(a => a.Id == id);
         if (auction == null) return NotFound();
         var user = await _userService.GetUserByAuth0Id(User);
+
+        if (auction.Owner == user)
+        {
+            return BadRequest($"You cannot bid on your own auction");
+        }
 
         var minBidValue = await _auctionService.GetMinBidValueForAuctionAsync(id);
         if (value <= minBidValue)
@@ -134,7 +142,7 @@ public class AuctionController : ControllerBase
         await _context.Set<Bid>().AddAsync(newBid);
         await _context.SaveChangesAsync();
 
-        var bidData = new BidData
+        var bidData = new BidDto
         {
             AuctionId = auction.Id,
             BidderName = user.Name,
@@ -159,6 +167,11 @@ public class AuctionController : ControllerBase
         try
         {
             var winner = await _userService.GetUserByAuth0Id(User);
+            
+            if (auction.Owner == winner)
+            {
+                return BadRequest($"You cannot buy your own auction");
+            }
 
             auction.Winner = winner;
             auction.IsClosed = true;
@@ -226,8 +239,54 @@ public class AuctionController : ControllerBase
             return NotFound($"Payment for auction with ID {id} does not exist");
         }
 
+        if (payment.State == PaymentState.Registered)
+        {
+            return BadRequest($"Payment was already registered!");
+        }
+        
+        if (payment.State == PaymentState.Paid)
+        {
+            return BadRequest($"The auction was already paid for!");
+        }
+        
+        return Ok(new PaymentDto
+        {
+            Id = payment.Id,
+            Value = payment.Value,
+            NameOfProduct = payment.Auction.NameOfProduct
+        });
+    }
+
+    [HttpPost]
+    [Route("/Payments/{id:int}")]
+    public async Task<ObjectResult> PostPaymentById(int id, [FromBody] decimal value)
+    {
+        Payment payment;
+        try
+        {
+            payment = await _context.Set<Payment>()
+                .FirstAsync(a => a.Id == id);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+            return NotFound($"Payment detail with ID {id} does not exist.");
+        }
+
+        try
+        {
+            payment.State = PaymentState.Registered;
+            payment.DateRegisterd = DateTime.Now;
+            await _context.SaveChangesAsync();
+        }
+        catch (Exception e)
+        {
+            return NotFound($"Payment was not successfull");
+        }
+
         return Ok(payment);
     }
+
 
     [HttpDelete]
     [Route("/Auctions/{id:int}")]

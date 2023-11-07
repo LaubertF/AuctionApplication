@@ -11,19 +11,29 @@
 @inject IJSRuntime JSRuntime
 @attribute [Authorize]
 
-<h3>Payment Gate</h3>
 
+@if (appState != null && appState.ToastMessage != null)
+{
+    <div class="d-flex justify-content-center alert alert-@appState.ToastType alert-dismissible fade show" role="alert">
+        @appState.ToastMessage
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
 
-@* @if (appState != null && appState.ToastMessage != null) *@
-@* { *@
-@*     <div class="d-flex justify-content-center alert alert-@appState.ToastType alert-dismissible fade show" role="alert"> *@
-@*         @appState.ToastMessage *@
-@*         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button> *@
-@*     </div> *@
-@* } *@
+@foreach (Toast toast in toasts)
+{
+    @if (toast.Show == "page")
+    {
+        <div class="d-flex justify-content-center alert alert-@toast.Type alert-dismissible fade show" role="alert">
+            @toast.Message
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+}
 
 @if (payment != null)
 {
+    <h3>Payment Gate</h3>
     <EditForm Model=@paymentGateData OnSubmit=@FormSubmitted>
         <DataAnnotationsValidator/>
         <div class="container">
@@ -124,7 +134,7 @@
                         <div class="d-flex justify-content-between p-1">
                             <div class="d-flex flex-column">
                                 <span>
-                                    @payment.Auction.NameOfProduct <i class="fa fa-caret-down"></i>
+                                    @payment.NameOfProduct <i class="fa fa-caret-down"></i>
                                 </span>
                             </div>
                             <div class="mt-1">
@@ -174,7 +184,7 @@
     [Parameter]
     public int id { get; set; }
 
-    private Payment? payment;
+    private PaymentDto? payment;
     private List<Toast> toasts = new List<Toast>();
     PaymentGateData paymentGateData = new PaymentGateData();
     
@@ -185,11 +195,13 @@
 
         if (response.IsSuccessStatusCode)
         {
-            payment = JsonSerializer.Deserialize<Payment>(content, new JsonSerializerOptions
+            payment = JsonSerializer.Deserialize<PaymentDto>(content, new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true, // Make property names case-insensitive
                 Converters = { new JsonStringEnumConverter() } // Handle enum serialization/deserialization
             });
+            Console.WriteLine(payment.Id);
+            Console.WriteLine(payment.Value);
         }
         else
         {
@@ -203,19 +215,19 @@
         bool formIsValid = editContext.Validate();
         if (formIsValid)
         {
-            //TODO: tu doplnit post endpoint na zaplatenie 
-            // var response = await Http.PostAsJsonAsync($"/Auctions/{id}/Buyout", @payment.Value);
-            // var responseContent = await response.Content.ReadAsStringAsync();
-            // if (response.IsSuccessStatusCode)
-            // {
-            //     appState.ToastMessage = "Payment was successfully registered.";
-            //     appState.ToastType = "success";
-            //     NavigationManager.NavigateTo($"/profile");
-            // }
-            // else
-            // {
-            //     toasts.Add(new Toast { Type = "danger", Show = "modal", Message = responseContent });
-            // }
+            Console.WriteLine(payment.Id);
+            var response = await Http.PostAsJsonAsync($"/Payments/{payment.Id}", @payment.Value);
+            var responseContent = await response.Content.ReadAsStringAsync();
+            if (response.IsSuccessStatusCode)
+            {
+                appState.ToastMessage = "Payment was successfully registered.";
+                appState.ToastType = "success";
+                NavigationManager.NavigateTo($"/profile");
+            }
+            else
+            {
+                toasts.Add(new Toast { Type = "danger", Show = "modal", Message = responseContent });
+            }
         }
     }
 

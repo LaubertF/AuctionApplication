@@ -39,12 +39,15 @@ public class AuctionService
      */
     public bool CheckAuctionForCompletion(Auction auction)
     {
-        if (auction.EndInclusive >= DateTime.UtcNow) return false;
-        if (auction.Winner != null) return true;
+        if (auction.EndInclusive >= DateTime.Now) return false;
+        if (auction.IsClosed) return true;
+        
+        auction.IsClosed = true;
         var topBid = _context.Set<Bid>().Where(b => b.Auction.Id == auction.Id).Include(b => b.Bidder).ToList()
             .MaxBy(b => b.Value);
         if (topBid == null)
         {
+            _context.SaveChanges();
             return true;
         }
 

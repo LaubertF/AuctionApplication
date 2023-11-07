@@ -27,7 +27,7 @@ public class UserService
         var newUser = new User
         {
             Auth0Id = auth0Id.Value,
-            Name = auth0Id.Value.Substring(5, 10),
+            Name = auth0Id.Value.Substring(6, 10),
         };
         await _userRepository.AddAsync(newUser);
         return newUser;

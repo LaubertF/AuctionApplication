@@ -1,4 +1,6 @@
-﻿namespace AuctionApplication.Shared;
+﻿using System.Text.Json.Serialization.Metadata;
+
+namespace AuctionApplication.Shared;
 
 public class Payment : BaseEntity
 {

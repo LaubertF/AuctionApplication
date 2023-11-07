@@ -2,7 +2,7 @@
 
 public class AppStateService
 {
-    public string ToastMessage { get; set; }
-    public string ToastType { get; set; } = "success";
+    public string? ToastMessage { get; set; }
+    public string? ToastType { get; set; } = "success";
 }
 
