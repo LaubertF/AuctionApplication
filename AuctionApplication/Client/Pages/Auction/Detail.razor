@@ -369,14 +369,7 @@
                 {
                     Console.WriteLine("Could not close modal");
                 }
-                try
-                {
-                    await JSRuntime.InvokeVoidAsync("removeBackdrop");
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine("Could not remove backdrop");
-                }
+
                 toasts.Add(new Toast { Type = "success", Show = "page", Message = $"Success!" });
                 navigateToPayment = true;
             }

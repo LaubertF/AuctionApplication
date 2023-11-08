@@ -1,30 +1,16 @@
 ﻿function closeModal(elementId) {
     var myModalEl = document.getElementById(elementId);
-    var modal = bootstrap.Modal.getInstance(myModalEl)
+    var modal = bootstrap.Modal.getInstance(myModalEl);
     if (modal) {
         modal.hide();
-        var modalBackdrop = document.querySelector('.modal-backdrop');
-        if (modalBackdrop) {
-            modalBackdrop.remove();
-        }
+        
+        myModalEl.addEventListener('hidden.bs.modal', function () {
+            document.querySelector('.modal-backdrop').remove();
+            document.body.style.overflow = 'auto';
+            document.body.style.paddingRight = '0px';
+        });
     }
 }
-
-window.asyncRemoveBackdrop = async function() {
-    await removeBackdrop();
-};
-
-function removeBackdrop() {
-    console.log("removeBackdrop");
-    var modalBackdrop = document.querySelector('.modal-backdrop');
-    if (modalBackdrop) {
-        console.log("odstranujem");
-        modalBackdrop.remove();
-    } else {
-        console.log("nenasla som");
-    }
-}
-
 function watchInput(elementId, minValue) {
     var element = document.getElementById(elementId);
     if (element) {
