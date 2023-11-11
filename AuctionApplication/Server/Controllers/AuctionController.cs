@@ -4,6 +4,7 @@ using AuctionApplication.Database;
 using AuctionApplication.Server.Business;
 using AuctionApplication.Server.Hubs;
 using AuctionApplication.Shared;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
@@ -270,7 +271,7 @@ public class AuctionController : ControllerBase
         return Ok(payment);
     }
 
-
+    [Authorize(Roles = "Admin")]
     [HttpDelete]
     [Route("/Auctions/{id:int}")]
     public async Task<IActionResult> DeleteAuction(int id)
@@ -278,12 +279,13 @@ public class AuctionController : ControllerBase
         var requester = await _userService.GetUserByAuth0Id(User);
         var auction = await _context.Set<Auction>().FirstOrDefaultAsync(a => a.Id == id);
         if (auction == null) return NotFound();
-        if (auction.Owner.Id != requester.Id || !requester.IsAdmin) return StatusCode((int)HttpStatusCode.Forbidden);
+        if (auction.Owner.Id != requester.Id) return StatusCode((int)HttpStatusCode.Forbidden);
         _context.Set<Auction>().Remove(auction);
         await _context.SaveChangesAsync();
         return Ok();
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpPut]
     [Route("/Auctions/{id:int}")]
     public async Task<IActionResult> UpdateAuction(int id, [FromBody] Auction auction)
@@ -291,7 +293,7 @@ public class AuctionController : ControllerBase
         var requester = await _userService.GetUserByAuth0Id(User);
         var auctionToUpdate = await _context.Set<Auction>().FirstOrDefaultAsync(a => a.Id == id);
         if (auctionToUpdate == null) return NotFound();
-        if (auctionToUpdate.Owner.Id != requester.Id || !requester.IsAdmin)
+        if (auctionToUpdate.Owner.Id != requester.Id)
             return StatusCode((int)HttpStatusCode.Forbidden);
         auctionToUpdate.NameOfProduct = auction.NameOfProduct;
         auctionToUpdate.Description = auction.Description;
