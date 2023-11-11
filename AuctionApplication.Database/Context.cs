@@ -11,7 +11,7 @@ public class Context : DbContext
     public DbSet<User> Users { get; set; }
     public DbSet<Bid> Bids { get; set; }
     public DbSet<Payment> Payments { get; set; }
-    public DbSet<CustomAuctionCategory> AuctionCategories { get; set; }
+    public DbSet<AuctionCategory> AuctionCategory { get; set; }
     
     
     public string DbPath { get; }
@@ -20,12 +20,31 @@ public class Context : DbContext
         var folder = Environment.SpecialFolder.LocalApplicationData;
         var path = Environment.GetFolderPath(folder);
         DbPath = System.IO.Path.Join(path, "auction.db");
-        Console.WriteLine($"Data Source={DbPath}");
+
     }
 
     // The following configures EF to create a Sqlite database file in the
     // special "local" folder for your platform.
     protected override void OnConfiguring(DbContextOptionsBuilder options)
         => options.UseSqlite($"Data Source={DbPath}");
-    
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Auction>().HasMany(a => a.ProductImages).WithOne().OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<Auction>().HasOne(a => a.Owner).WithMany().OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<Auction>().HasOne(a => a.Category).WithMany().OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<Auction>().HasOne(a => a.Winner).WithMany().OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<Bid>().HasOne(a => a.Auction).WithMany().OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<Bid>().HasOne(a => a.Bidder).WithMany().OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<Payment>().HasOne(a => a.Auction).WithOne().HasForeignKey<Auction>(a => a.PaymentId).OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<Payment>().HasOne(a => a.User).WithMany().OnDelete(DeleteBehavior.Cascade);
+        
+        modelBuilder.Entity<AuctionCategory>().HasData(
+            new AuctionCategory { Id = 1, Name = "Other" },
+            new AuctionCategory { Id = 2, Name = "Electronics" },
+            new AuctionCategory { Id = 3, Name = "Fashion" },
+            new AuctionCategory { Id = 4, Name = "Home" },
+            new AuctionCategory { Id = 5, Name = "Sports" },
+            new AuctionCategory { Id = 6, Name = "Vehicles" }
+        );
+    }
 }
