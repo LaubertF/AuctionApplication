@@ -34,6 +34,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidIssuer = $"{builder.Configuration["Auth0:Domain"]}",
         };
     });
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("RequireAdministratorRole",
+        policy => policy.RequireClaim("https://my-app.example.com/roles", "Admin"));
+});
 
 var app = builder.Build();
 app.UseResponseCompression();
