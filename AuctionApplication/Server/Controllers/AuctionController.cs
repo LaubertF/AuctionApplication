@@ -316,6 +316,35 @@ public class AuctionController : ControllerBase
         await _context.SaveChangesAsync();
         return Ok();
     }
+    
+    [HttpGet]
+    [Route("/Auctions/Category/")]
+    public async Task<IActionResult> GetCategories()
+    {
+        var categories = await _context.Set<CustomAuctionCategory>().ToListAsync();
+        return Ok(categories);
+    }
+    
+    [HttpPost]
+    [Route("/Auctions/Category/")]
+    public async Task<IActionResult> CreateCategory([FromBody] CustomAuctionCategory category)
+    {
+        await _context.Set<CustomAuctionCategory>().AddAsync(category);
+        await _context.SaveChangesAsync();
+        return Ok();
+    }
+    
+    
+    [HttpDelete]
+    [Route("/Auctions/Category/{id:int}")]
+    public async Task<IActionResult> DeleteCategory(int id)
+    {
+        var category = await _context.Set<CustomAuctionCategory>().FirstOrDefaultAsync(c => c.Id == id);
+        if (category == null) return NotFound();
+        _context.Set<CustomAuctionCategory>().Remove(category);
+        await _context.SaveChangesAsync();
+        return Ok();
+    }
 }
 
 public record AuctionDto(string NameOfProduct, string Description, decimal StartingPrice, DateTime EndInclusive);
