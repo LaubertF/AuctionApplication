@@ -2,5 +2,5 @@ namespace AuctionApplication.Shared;
 
 public abstract class BaseEntity
 {
-    public virtual int Id { get; protected set; }
+    public int Id { get; set; }
 }

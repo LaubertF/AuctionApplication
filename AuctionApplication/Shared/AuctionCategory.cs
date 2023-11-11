@@ -1,11 +1,6 @@
 ﻿namespace AuctionApplication.Shared;
 
-public enum AuctionCategory
+public class AuctionCategory : BaseEntity
 {
-    Electronics,
-    Fashion,
-    Home,
-    Sports,
-    Vehicles,
-    Other
+    public string Name { get; set; } = string.Empty;
 }

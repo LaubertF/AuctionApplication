@@ -15,7 +15,7 @@
 {
     <div class="d-flex justify-content-center alert alert-@appState.ToastType alert-dismissible fade show" role="alert">
         @appState.ToastMessage
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <button type="button" class="btn-close" @onclick="() => CloseAppState(appState)"></button>
     </div>
 }
 
@@ -25,7 +25,7 @@
     {
         <div class="d-flex justify-content-center alert alert-@toast.Type alert-dismissible fade show" role="alert">
             @toast.Message
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <button type="button" class="btn-close" @onclick="() => CloseToast(toast)"></button>
         </div>
     }
 }
@@ -93,8 +93,8 @@
                                 <span class="fw-lighter">@auction.Owner.Name</span>
                             </li>
                             <li class="list-group-item">
-                                <div class="fw-bold">Category: </div>
-                                <div class="fw-lighter">@auction.Category</div>
+                                <span class="fw-bold">Category: </span>
+                                <span class="fw-lighter">@auction.Category.Name</span>
                             </li>
                             <li class="list-group-item">
                                 <div class="fw-bold">Description: </div>
@@ -193,7 +193,7 @@
                         {
                             <div class="d-flex justify-content-center alert alert-@toast.Type alert-dismissible fade show" role="alert">
                                 @toast.Message
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                <button type="button" class="btn-close" @onclick="() => CloseToast(toast)"></button>
                             </div>
                         }
                     }
@@ -226,7 +226,7 @@
                     {
                         <div class="d-flex justify-content-center alert alert-@toast.Type alert-dismissible fade show" role="alert">
                             @toast.Message
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            <button type="button" class="btn-close" @onclick="() => CloseToast(toast)"></button>
                         </div>
                     }
                 }
@@ -283,6 +283,18 @@
             toasts.Add(new Toast { Type = "danger", Show = "page", Message = content });
             auction = null;
         }
+    }
+    
+    private void CloseToast(Toast toast)
+    {
+        toasts.Remove(toast);
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void CloseAppState(AppStateService toast)
+    {
+        appState.ToastMessage = "";
+        InvokeAsync(StateHasChanged);
     }
 
     private async void InitHub()
