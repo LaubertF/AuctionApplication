@@ -191,7 +191,7 @@
     {
         bool formIsValid = editContext.Validate();
         imageChange = true;
-        bool reqImage = auction.ProductImages.Count > 0;
+        bool reqImage = auction.ProductImages != null && auction.ProductImages.Count > 0;
         if (formIsValid && reqImage)
         {
             var response = await Http.PostAsJsonAsync("/Auctions/Create", auction);
