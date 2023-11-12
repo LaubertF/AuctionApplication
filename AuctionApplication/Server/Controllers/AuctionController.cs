@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using AuctionApplication.Database;
 using AuctionApplication.Server.Business;
 using AuctionApplication.Server.Hubs;
@@ -29,16 +30,7 @@ public class AuctionController : ControllerBase
         _hubContext = hubContext;
         _auctionService = auctionService;
     }
-
-    [HttpPost]
-    [Route("/test")]
-    public IActionResult Test()
-    {
-        _hubContext.Clients.All.SendAsync("SendBid", new Bid());
-        _hubContext.Clients.All.SendAsync("ReceiveMessage", "user", "message");
-        return Ok();
-    }
-
+    
     [HttpGet]
     [Route("/Auctions")]
     public async Task<IList<Auction>> Get()
@@ -62,20 +54,81 @@ public class AuctionController : ControllerBase
         
         return auctions;
     }
+    
+    [HttpGet]
+    [Route("/Auctions/All")]
+    public async Task<IList<AuctionDto>> GetAll()
+    {
+        IList<Auction> auctions = new List<Auction>();
+        auctions = await _context.Set<Auction>()
+            .Include(a => a.Owner)
+            .Include(a => a.Category)
+            .ToListAsync();
+        IList<AuctionDto> auctionDtos = auctions.Select(auction => new AuctionDto
+        {
+            Id = auction.Id,
+            Title = auction.NameOfProduct,
+            Description = auction.Description,
+            Category = auction.Category,
+            StartInclusive = auction.StartInclusive,
+            EndInclusive = auction.EndInclusive,
+            StartingPrice = auction.StartingPrice,
+            BuyoutPrice = auction.BuyoutPrice,
+            OwnerName = auction.Owner?.Name,
+            WinnerName = auction.Winner?.Name,
+            IsClosed = auction.IsClosed
+        }).ToList();
+        
+        return auctionDtos;
+    }
+    
+    [HttpGet]
+    [Route("/Auctions/New")]
+    public async Task<IActionResult> GetDefaultAuction()
+    {
+        try
+        {
+            Auction auction = new Auction();
+            AuctionCategory category;
+            try
+            {
+                category = await _context.Set<AuctionCategory>()
+                    .FirstAsync(a => a.Name == "Other");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                return NotFound($"Auction categories do not exist.");
+            }
+
+            auction.Category = category;
+            auction.NameOfProduct = "default";
+            return Ok(auction);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
 
     [HttpPost]
     [Route("/Auctions/Create")]
-    public async Task<IActionResult> CreateAction([FromBody] Auction formData)
+    public async Task<IActionResult> CreateAuction([FromBody] Auction formData)
     {
         try
         {
             var user = await _userService.GetUserByAuth0Id(User);
             formData.Owner = user;
+            var categoryName = formData.Category.Name;
+            formData.Category = await _context.Set<AuctionCategory>().FirstOrDefaultAsync(c => c.Name == categoryName);
             var auction = await _auctionRepository.AddAsync(formData);
+            
             return Ok(auction.Id);
         }
         catch (Exception e)
         {
+            Console.WriteLine(e.Message);
+            Console.WriteLine(e.InnerException);
             return BadRequest(e.Message);
         }
     }
@@ -89,6 +142,7 @@ public class AuctionController : ControllerBase
         {
             auction = await _context.Set<Auction>()
                 .Include(a => a.ProductImages)
+                .Include(a => a.Category)
                 .Include(a => a.Owner)
                 .FirstAsync(a => a.Id == id);
         }
@@ -286,21 +340,21 @@ public class AuctionController : ControllerBase
 
         return Ok(payment);
     }
-
-
+    
     [HttpDelete]
     [Route("/Auctions/{id:int}")]
     public async Task<IActionResult> DeleteAuction(int id)
     {
+
         var requester = await _userService.GetUserByAuth0Id(User);
         var auction = await _context.Set<Auction>().FirstOrDefaultAsync(a => a.Id == id);
         if (auction == null) return NotFound();
-        if (auction.Owner.Id != requester.Id || !requester.IsAdmin) return StatusCode((int)HttpStatusCode.Forbidden);
+        if (auction.Owner.Id != requester.Id) return StatusCode((int)HttpStatusCode.Forbidden);
         _context.Set<Auction>().Remove(auction);
         await _context.SaveChangesAsync();
         return Ok();
     }
-
+    
     [HttpPut]
     [Route("/Auctions/{id:int}")]
     public async Task<IActionResult> UpdateAuction(int id, [FromBody] Auction auction)
@@ -308,11 +362,14 @@ public class AuctionController : ControllerBase
         var requester = await _userService.GetUserByAuth0Id(User);
         var auctionToUpdate = await _context.Set<Auction>().FirstOrDefaultAsync(a => a.Id == id);
         if (auctionToUpdate == null) return NotFound();
-        if (auctionToUpdate.Owner.Id != requester.Id || !requester.IsAdmin)
+        if (auctionToUpdate.Owner.Id != requester.Id)
             return StatusCode((int)HttpStatusCode.Forbidden);
         auctionToUpdate.NameOfProduct = auction.NameOfProduct;
         auctionToUpdate.Description = auction.Description;
+        auctionToUpdate.Category = auction.Category;
         auctionToUpdate.StartingPrice = auction.StartingPrice;
+        auctionToUpdate.BuyoutPrice = auction.BuyoutPrice;
+        auctionToUpdate.StartInclusive = auction.StartInclusive;
         auctionToUpdate.EndInclusive = auction.EndInclusive;
         await _context.SaveChangesAsync();
         return Ok();
@@ -331,6 +388,42 @@ public class AuctionController : ControllerBase
         await _context.SaveChangesAsync();
         return Ok();
     }
+    
+    [HttpGet]
+    [Route("/Auctions/Categories")]
+    public async Task<IActionResult> GetCategories()
+    {
+        var categories = await _context.Set<AuctionCategory>().ToListAsync();
+        return Ok(categories);
+    }
+    
+    [HttpGet]
+    [Route("/Auctions/Categories/{name}")]
+    public async Task<IActionResult> GetCategory(string name)
+    {
+        var category = await _context.Set<AuctionCategory>().FirstOrDefaultAsync(c => c.Name == name);
+        if (category == null) return NotFound();
+        return Ok(category);
+    }
+    
+    [HttpPost]
+    [Route("/Auctions/Categories")]
+    public async Task<IActionResult> CreateCategory([FromBody] AuctionCategory category)
+    {
+        await _context.Set<AuctionCategory>().AddAsync(category);
+        await _context.SaveChangesAsync();
+        return Ok();
+    }
+    
+    
+    [HttpDelete]
+    [Route("/Auctions/Categories/{name}")]
+    public async Task<IActionResult> DeleteCategory(string name)
+    {
+        var category = await _context.Set<AuctionCategory>().FirstOrDefaultAsync(c => c.Name == name);
+        if (category == null) return NotFound();
+        _context.Set<AuctionCategory>().Remove(category);
+        await _context.SaveChangesAsync();
+        return Ok();
+    }
 }
-
-public record AuctionDto(string NameOfProduct, string Description, decimal StartingPrice, DateTime EndInclusive);

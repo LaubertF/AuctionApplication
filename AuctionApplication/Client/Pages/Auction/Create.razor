@@ -1,24 +1,29 @@
 ﻿@page "/auction/create"
 @using AuctionApplication.Shared
 @using AuctionApplication.Client.Services
+@using System.Text.Json
+@using System.Text.Json.Serialization
 @inject HttpClient Http
 @inject NavigationManager NavigationManager
 @inject AppStateService appState
 @attribute [Authorize]
 
-@if (errorMessage != null)
+@foreach (Toast toast in toasts)
 {
-    <div class="d-flex justify-content-center alert alert-danger alert-dismissible fade show" role="alert">
-        @errorMessage
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
+    @if (toast.Show == "page")
+    {
+        <div class="d-flex justify-content-center alert alert-@toast.Type alert-dismissible fade show" role="alert">
+            @toast.Message
+            <button type="button" class="btn-close" @onclick="() => CloseToast(toast)"></button>
+        </div>
+    }
 }
 
 <div class="d-flex justify-content-center">
     <h2>Create new auction</h2>
 </div>
 
-<EditForm Model=@auction OnSubmit=@FormSubmitted class="pt-5">
+<EditForm Model="@auction" OnSubmit=@FormSubmitted class="pt-5">
     <DataAnnotationsValidator/>
     <div class="container-fluid">
         <div class="row justify-content-start">
@@ -42,10 +47,10 @@
                 <div class="row py-1">
                     <div class="col-12">
                         <div class="form-floating">
-                            <InputSelect id="category" @bind-Value="@auction.Category" class="form-select" placeholder>
-                                @foreach (AuctionCategory category in Enum.GetValues(typeof(AuctionCategory)))
+                            <InputSelect id="category" @bind-Value="@auction.Category.Name" class="form-select" placeholder>
+                                @foreach (AuctionCategory category in categories)
                                 {
-                                    <option value="@category">@category</option>
+                                    <option value="@category.Name">@category.Name</option>
                                 }
                             </InputSelect>
                             <label for="start-date" class="">Category *</label>
@@ -95,7 +100,7 @@
                     <div class="col-6">
                         <label for="images" class="form-label">Choose images *</label>
                         <InputFile id="images" class="form-control form-control-sm" multiple
-                                   accept="image/png, image/jpeg, image/gif" OnChange="OnChange">
+                                   accept="image/png, image/jpeg, image/gif" OnChange="OnImageChange">
                         </InputFile>  
                         @if (imageChange && auction.ProductImages.Count == 0)
                         {
@@ -150,11 +155,24 @@
 </EditForm>
 
 @code {
-    Auction? auction = new Auction();
-    String? errorMessage;
+    Auction auction = new Auction { Category = new AuctionCategory { Name = "Other" } };
+    List<AuctionCategory>? categories = new List<AuctionCategory>();
+    private List<Toast> toasts = new List<Toast>();
     Boolean imageChange = false;
 
-    private async Task OnChange(InputFileChangeEventArgs e)
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDefaultAuction();
+        await LoadCategories();
+    }
+    
+    private void CloseToast(Toast toast)
+    {
+        toasts.Remove(toast);
+        InvokeAsync(StateHasChanged);
+    }
+    
+    private async Task OnImageChange(InputFileChangeEventArgs e)
     {
         imageChange = true;
         auction.ProductImages = new List<ProductImage>();
@@ -191,7 +209,7 @@
     {
         bool formIsValid = editContext.Validate();
         imageChange = true;
-        bool reqImage = auction.ProductImages.Count > 0;
+        bool reqImage = auction.ProductImages != null && auction.ProductImages.Count > 0;
         if (formIsValid && reqImage)
         {
             var response = await Http.PostAsJsonAsync("/Auctions/Create", auction);
@@ -204,8 +222,37 @@
             }
             else
             {
-                errorMessage = responseContent;
+                toasts.Add(new Toast { Type = "danger", Show = "page", Message = responseContent });
             }
+        }
+    }
+    
+    private async Task LoadDefaultAuction()
+    {
+        var response = await Http.GetAsync($"/Auctions/New");
+        var content = await response.Content.ReadAsStringAsync();
+        if (response.IsSuccessStatusCode)
+        {
+            auction = JsonSerializer.Deserialize<Auction>(content, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true, // Make property names case-insensitive
+                Converters = { new JsonStringEnumConverter() } // Handle enum serialization/deserialization
+            });
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+    
+    private async Task LoadCategories()
+    {
+        var response = await Http.GetAsync($"/Auctions/Categories");
+        var content = await response.Content.ReadAsStringAsync();
+        if (response.IsSuccessStatusCode)
+        {
+            categories = JsonSerializer.Deserialize<List<AuctionCategory>>(content, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true, // Make property names case-insensitive
+                Converters = { new JsonStringEnumConverter() } // Handle enum serialization/deserialization
+            });
         }
     }
 

@@ -1,14 +1,23 @@
-@page "/profile"
-@using AuctionApplication.Shared
+@using AuctionApplication.Client.Services
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
 @using System.Text.Json
 @using System.Text.Json.Serialization
-@using Microsoft.AspNetCore.Components.Authorization
-@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@inject AppStateService appState
+@attribute [Authorize]
+@page "/profile"
 
 @inject NavigationManager Navigation
 @inject SignOutSessionStateManager SignOutManager
 @attribute [Authorize]
 @inject HttpClient Http
+
+@if (appState != null && appState.ToastMessage != null)
+{
+    <div class="d-flex justify-content-center alert alert-@appState.ToastType alert-dismissible fade show" role="alert">
+        @appState.ToastMessage
+        <button type="button" class="btn-close" @onclick="() => CloseAppState(appState)"></button>
+    </div>
+}
 
 <h3 class="fw-bold mb-4">Your profile</h3>
 <div class="container">
@@ -99,5 +108,9 @@
         }
     }
 
-    
+    private void CloseAppState(AppStateService toast)
+    {
+        appState.ToastMessage = "";
+        InvokeAsync(StateHasChanged);
+    }
 }

@@ -16,7 +16,8 @@ builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>()
     .CreateClient("ServerAPI"));
 
 builder.Services.AddScoped<AppStateService>();
-
+builder.Services.AddScoped(typeof(AccountClaimsPrincipalFactory<RemoteUserAccount>),
+    typeof(CustomAccountFactory));
 builder.Services.AddOidcAuthentication(options =>
 {
     builder.Configuration.Bind("Auth0", options.ProviderOptions);

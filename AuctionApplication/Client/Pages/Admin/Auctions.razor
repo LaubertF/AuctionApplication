@@ -1,0 +1,185 @@
+﻿@page "/admin/auctions"
+@using AuctionApplication.Shared
+@using AuctionApplication.Client.Services
+@using System.Text.Json
+@using System.Text.Json.Serialization
+@attribute [Authorize(Roles = "Admin")]
+@inject HttpClient Http
+
+
+
+@foreach (Toast toast in toasts)
+{
+    @if (toast.Show == "page")
+    {
+        <div class="d-flex justify-content-center alert alert-@toast.Type alert-dismissible fade show" role="alert">
+            @toast.Message
+            <button type="button" class="btn-close" @onclick="() => CloseToast(toast)"></button>
+        </div>
+    }
+}
+
+
+<h3>Auctions</h3>
+
+<div class="table-responsive">
+    <table class="table table-sm">
+        <thead>
+        <tr>
+            <th scope="col">Title</th>
+            <th scope="col">Description</th>
+            <th scope="col">Category</th>
+            <th scope="col">Start date</th>
+            <th scope="col">End date</th>
+            <th scope="col">Starting price</th>
+            <th scope="col">Buyout price</th>
+            <th scope="col">Closed</th>
+            <th scope="col">Created by</th>
+            <th scope="col">Won by</th>
+            <th scope="col"></th>
+        </tr>
+        </thead>
+        <tbody>
+
+
+        @foreach (var auction in auctions)
+        {
+            <tr>
+                <td>
+                    <input class="form-control form-control-sm" type="text" @bind="auction.Title"/>
+                </td>
+                <td>
+                    <textarea class="form-control form-control-sm" @bind="auction.Description">
+                </textarea>
+                </td>
+                <td>
+                    <select class="form-select form-select-sm" @bind="auction.Category.Name">
+                        @foreach (AuctionCategory category in categories)
+                        {
+                            <option value="@category.Name">@category.Name</option>
+                        }
+                    </select>
+                </td>
+                <td>
+                    <input class="form-control form-control-sm" type="datetime-local" @bind="auction.StartInclusive"/>
+                </td>
+                <td>
+                    <input class="form-control form-control-sm" type="datetime-local" @bind="auction.EndInclusive"/>
+                </td>
+                <td>
+                    <input class="form-control form-control-sm" type="number" step="0.01" @bind="auction.StartingPrice"/>
+                </td>
+                <td>
+                    <input class="form-control form-control-sm" type="number" step="0.01" @bind="auction.BuyoutPrice"/>
+                </td>
+                <td>@auction.IsClosed</td>
+                <td>@auction.OwnerName</td>
+                <td>@auction.WinnerName</td>
+                <th scope="row">
+                    <div class="p-1">
+                        <button class="btn btn-sm btn-primary" @onclick="() => EditAuction(auction)">Modify</button>
+                    </div>
+                    <div class="p-1">
+                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteAuction(auction)">Delete</button>
+                    </div>
+
+                </th>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
+
+
+@code {
+    private IList<AuctionDto> auctions = new List<AuctionDto>();
+    private List<AuctionCategory> categories = new List<AuctionCategory>();
+    private List<Toast> toasts = new List<Toast>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCategories();
+        await LoadAuctions();
+    }
+    
+    private void CloseToast(Toast toast)
+    {
+        toasts.Remove(toast);
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task EditAuction(AuctionDto auction)
+    {
+        Auction auctionBody = new Auction
+        {
+            NameOfProduct = auction.Title,
+            Description = auction.Description,
+            StartingPrice = auction.StartingPrice,
+            BuyoutPrice = auction.BuyoutPrice,
+            StartInclusive = auction.StartInclusive,
+            EndInclusive = auction.EndInclusive,
+        };
+
+        var response = await Http.PutAsJsonAsync($"/Auctions/{auction.Id}", auctionBody);
+        var content = await response.Content.ReadAsStringAsync();
+        if (response.IsSuccessStatusCode)
+        {
+            toasts.Add(new Toast { Type = "success", Show = "page", Message = "Auction was successfully modified" });
+        }
+        else
+        {
+            toasts.Add(new Toast { Type = "danger", Show = "page", Message = content });
+        }
+    }
+
+    private async Task DeleteAuction(AuctionDto auction)
+    {
+        var response = await Http.DeleteAsync($"/Auctions/{auction.Id}");
+        var content = await response.Content.ReadAsStringAsync();
+        if (response.IsSuccessStatusCode)
+        {
+            toasts.Add(new Toast { Type = "success", Show = "page", Message = "Auction was successfully deleted" });
+            await LoadAuctions();
+        }
+        else
+        {
+            toasts.Add(new Toast { Type = "danger", Show = "page", Message = content });
+        }
+    }
+
+    private async Task LoadCategories()
+    {
+        var response = await Http.GetAsync($"/Auctions/Categories");
+        var content = await response.Content.ReadAsStringAsync();
+        
+        if (response.IsSuccessStatusCode)
+        {
+            categories = JsonSerializer.Deserialize<List<AuctionCategory>>(content, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true, // Make property names case-insensitive
+                Converters = { new JsonStringEnumConverter() } // Handle enum serialization/deserialization
+            });
+        }
+    }
+
+    private async Task LoadAuctions()
+    {
+        var response = await Http.GetAsync($"/Auctions/All");
+        var content = await response.Content.ReadAsStringAsync();
+
+        if (response.IsSuccessStatusCode)
+        {
+            Console.WriteLine(content);
+            auctions = JsonSerializer.Deserialize<IList<AuctionDto>>(content, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true, // Make property names case-insensitive
+                Converters = { new JsonStringEnumConverter() } // Handle enum serialization/deserialization
+            });
+        }
+        else
+        {
+            toasts.Add(new Toast { Type = "danger", Show = "page", Message = content });
+        }
+    }
+
+}

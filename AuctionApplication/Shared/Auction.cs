@@ -33,9 +33,19 @@ public class Auction : BaseEntity
     [DataType(DataType.Currency)]
     [Range(0, double.MaxValue, ErrorMessage = "Buyout price cannot be negative.")]
     public decimal? BuyoutPrice { get; set; } = null;
-    
-    public AuctionCategory Category { get; set; } = AuctionCategory.Other;
-    
+    public int? PaymentId { get; set; }
+    private AuctionCategory? _category = null;
+
+    public AuctionCategory? Category
+    {
+        get => _category;
+        set { _category = value; }
+    }
+
+    public void SetCategory(string categoryName)
+    {
+        _category = new AuctionCategory { Name = categoryName };
+    }
 }
 
 public class FutureDateAttribute : ValidationAttribute

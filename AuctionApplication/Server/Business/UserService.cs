@@ -27,7 +27,7 @@ public class UserService
         var newUser = new User
         {
             Auth0Id = auth0Id.Value,
-            Name = auth0Id.Value.Substring(6, 10),
+            Name = user.Claims.FirstOrDefault(c => c.Type == "custom_email")?.Value
         };
         await _userRepository.AddAsync(newUser);
         return newUser;

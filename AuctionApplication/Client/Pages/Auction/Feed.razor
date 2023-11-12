@@ -5,6 +5,9 @@
 @using System.Text.Json.Serialization
 @attribute [Authorize]
 @inject HttpClient Http
+@using AuctionApplication.Client.Services
+@inject NavigationManager NavigationManager
+@inject AppStateService appState
 
 <h3 class="fw-bold mb-4">Explore Items</h3>
 
@@ -14,10 +17,10 @@
             <div class="bg-light element-round p-3 mt-4 mb-1">
                 <h6 class="card-title fw-bold mb-3">Categories</h6>
                 <div class="row row-cols-auto g-1">
-                    @foreach (AuctionCategory category in Enum.GetValues(typeof(AuctionCategory)))
+                    @foreach (AuctionCategory category in categories)
                         {
                             <div class="col">
-                                <button class="btn-sm btn-outline-primary button-round ms-2">@category.ToString()</button>
+                                <button class="btn-sm btn-outline-primary button-round ms-2">@category.Name</button>
                             </div>
                         }
                 </div>
@@ -108,14 +111,16 @@
         <h6 class="card-title fw-bold mb-4">Loading...</h6>
     }
 </div>
-    
+
 
 
 @code {
     private IList<Auction>? auctions;
+    List<AuctionCategory>? categories = new List<AuctionCategory>();
     
     protected override async Task OnInitializedAsync()
     {
+        await LoadCategories();
         try
         {
             var response = await Http.GetAsync("/Auctions");
@@ -143,6 +148,20 @@
         {
             Console.WriteLine("CATCH");
             Console.WriteLine(ex);
+        }
+    }
+    
+    private async Task LoadCategories()
+    {
+        var response = await Http.GetAsync($"/Auctions/Categories");
+        var content = await response.Content.ReadAsStringAsync();
+        if (response.IsSuccessStatusCode)
+        {
+            categories = JsonSerializer.Deserialize<List<AuctionCategory>>(content, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true, // Make property names case-insensitive
+                Converters = { new JsonStringEnumConverter() } // Handle enum serialization/deserialization
+            });
         }
     }
 }

@@ -16,7 +16,7 @@
 {
     <div class="d-flex justify-content-center alert alert-@appState.ToastType alert-dismissible fade show" role="alert">
         @appState.ToastMessage
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <button type="button" class="btn-close" @onclick="() => CloseAppState(appState)"></button>
     </div>
 }
 
@@ -26,7 +26,7 @@
     {
         <div class="d-flex justify-content-center alert alert-@toast.Type alert-dismissible fade show" role="alert">
             @toast.Message
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <button type="button" class="btn-close" @onclick="() => CloseToast(toast)"></button>
         </div>
     }
 }
@@ -208,6 +208,18 @@
             toasts.Add(new Toast { Type = "danger", Show = "page", Message = content });
             payment = null;
         }
+    }
+    
+    private void CloseToast(Toast toast)
+    {
+        toasts.Remove(toast);
+        InvokeAsync(StateHasChanged);
+    }
+    
+    private void CloseAppState(AppStateService toast)
+    {
+        appState.ToastMessage = "";
+        InvokeAsync(StateHasChanged);
     }
     
     private async Task FormSubmitted(EditContext editContext)
