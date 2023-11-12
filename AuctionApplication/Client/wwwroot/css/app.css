@@ -238,4 +238,10 @@ a, .btn-link {
     overflow-x: hidden;
     overflow-y: scroll;
 }
+.icon-red {
+    color: red !important;
+}
+.icon-green {
+    color: #11ad11 !important;
+}
 

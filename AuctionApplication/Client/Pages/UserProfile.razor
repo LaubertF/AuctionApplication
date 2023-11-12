@@ -47,7 +47,7 @@
                             <tr>
                                 <th scope="col">Auction</th>
                                 <th scope="col">Price</th>
-                                <th scope="col">Status</th>
+                                <th scope="col">Paid</th>
                                 <th scope="col">Action</th>
                             </tr>
                         </thead>
@@ -59,7 +59,8 @@
                                 <tr>
                                     <td><a class="link-dark" href="/auction/detail/@auction.Id">@auction.NameOfProduct</a></td>
                                     <td>@auction.StartingPrice</td>
-                                    <td>Not Paid</td>
+                                    <td><i class="bi bi-x-circle icon-red"></i></td>
+                                    @* <td><i class="bi bi-check-circle icon-green"></i></td> *@
                                     <td><a class="btn btn-sm btn-warning button-round ms-2" type="submit" href="/auction/detail/@auction.Id/payment">Pay</a></td>
                                 </tr>
                             }
