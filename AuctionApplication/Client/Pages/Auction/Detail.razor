@@ -293,7 +293,7 @@
 
     private void CloseAppState(AppStateService toast)
     {
-        appState.ToastMessage = "";
+        appState.ToastMessage = null;
         InvokeAsync(StateHasChanged);
     }
 
