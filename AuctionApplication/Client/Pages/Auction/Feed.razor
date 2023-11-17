@@ -17,12 +17,15 @@
             <div class="bg-light element-round p-3 mt-4 mb-1">
                 <h6 class="card-title fw-bold mb-3">Categories</h6>
                 <div class="row row-cols-auto g-1">
+                    <div class="col">
+                        <button class="btn-sm btn-outline-danger button-round ms-2" @onclick="@(e => FilterByCategory("clear"))">Show All</button>
+                    </div>
                     @foreach (AuctionCategory category in categories)
-                        {
-                            <div class="col">
-                                <button class="btn-sm btn-outline-primary button-round ms-2">@category.Name</button>
-                            </div>
-                        }
+                    {
+                        <div class="col">
+                            <button class="btn-sm btn-outline-primary button-round ms-2" @onclick="@(e => FilterByCategory(category.Name))">@category.Name</button>
+                        </div>
+                    }
                 </div>
             </div>
         </div>
@@ -31,12 +34,18 @@
                 <i class="bi bi-funnel"></i>
             </button>
             <div class="row row-cols-auto g-1">
-              <div class="col">
-                <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
-              </div>
-              <div class="col">
-                <button class="btn-sm btn-outline btn-outline-primary ms-1" type="submit"><i class="bi bi-search"></i></button>
-              </div>
+                <div class="col">
+                    <input class="form-control mr-sm-2" type="search" @bind="searchFilter" placeholder="@searchPlaceholder" aria-label="Search">
+                </div>
+                @if (searchFilterFlag)
+                {
+                    <div class="col">
+                        <button class="btn button-outline-danger btn-outline-danger ms-1" type="submit" @onclick="@(e => FilterByName("clear"))"><i class="bi bi-x-circle"></i></button>
+                    </div>
+                }
+                <div class="col">
+                    <button class="btn button-outline btn-outline-primary ms-1" type="submit" @onclick="@(e => FilterByName("filter"))"><i class="bi bi-search"></i></button>
+                </div>
             </div>
         </nav>
     </div>
@@ -49,12 +58,14 @@
             {
                 @if (auction.IsClosed == false)
                 {
+                    noAuctionsCounter++;
                     <div class="col-12 col-md-6 col-xl-3">
                         <div class="card shadow">
+                            
                             <div class="card-header text-center justify-content-center align-items-center">
                                 <h6 class="card-title fw-bold"><i class="bi bi-clock-history mx-2"></i>15:23:02</h6>
                             </div>
-                        
+
                             @if (auction.ProductImages.Count == 0)
                             {
                                 <a class="ratio ratio-1x1" href="/auction/detail/@auction.Id"><img src="placeholder.png" alt="Flower" class="card-img-top"/></a>
@@ -67,7 +78,7 @@
                                     break;
                                 }
                             }
-                  
+
                             <div class="card-body">
                                 <h6 class="card-title fw-bold mb-4">@auction.NameOfProduct</h6>
                                 <div class="row">
@@ -75,7 +86,7 @@
                                         <h6 class="card-subtitle text-small text-muted text-start">Category</h6>
                                     </div>
                                     <div class="col-6">
-                                        <h6 class="card-subtitle text-small text-end">@auction.Category</h6>
+                                        <h6 class="card-subtitle text-small text-end">@auction.Category.Name</h6>
                                     </div>
                                 </div>
                                 <hr class="bg-primary border-2 border-top border-primary"/>
@@ -104,11 +115,19 @@
                     </div>
                 }
             }
+            @if (noAuctionsCounter == 0)
+            {
+                <h6 class="card-title fw-bold mb-4">There are no active auctions at the moment.</h6>
+            }
         </div>
     }
-    else
+    else if (loadingFlag)
     {
         <h6 class="card-title fw-bold mb-4">Loading...</h6>
+    }
+    else if (auctions == null && !loadingFlag)
+    {
+        <h6 class="card-title fw-bold mb-4">There are no active auctions at the moment.</h6>
     }
 </div>
 
@@ -117,30 +136,87 @@
 @code {
     private IList<Auction>? auctions;
     List<AuctionCategory>? categories = new List<AuctionCategory>();
-    
+    bool loadingFlag = true;
+    int noAuctionsCounter = 0;
+    string searchFilter = string.Empty;
+    bool searchFilterFlag = false;
+    string searchPlaceholder = "Search";
+
     protected override async Task OnInitializedAsync()
     {
         await LoadCategories();
+        await LoadAllAuctions();
+    }
+
+    private async Task LoadAllAuctions()
+    {
         try
         {
             var response = await Http.GetAsync("/Auctions");
             if (response.IsSuccessStatusCode)
             {
-                Console.WriteLine("BEFORE");
                 var contentStream = await response.Content.ReadAsStreamAsync();
-                
-                var rawContent = await response.Content.ReadAsStringAsync();
-                Console.WriteLine(rawContent);
-                
+    // var rawContent = await response.Content.ReadAsStringAsync();
                 auctions = await JsonSerializer.DeserializeAsync<IList<Auction>>(contentStream, new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true, // Make property names case-insensitive
                     Converters = { new JsonStringEnumConverter() } // Handle enum serialization/deserialization
                 });
-                foreach (var auction in auctions)
+                if (auctions == null)
                 {
-                    Console.WriteLine("tuna");
-                    Console.WriteLine(auction.ProductImages.Count);
+                    loadingFlag = false;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("CATCH");
+            Console.WriteLine(ex);
+        }
+    }
+    
+    private async Task LoadAuctionsByCategory(string name)
+    {
+        try
+        {
+            var response = await Http.GetAsync($"/Auctions/Category/{name}");
+            if (response.IsSuccessStatusCode)
+            {
+                var contentStream = await response.Content.ReadAsStreamAsync();
+                auctions = await JsonSerializer.DeserializeAsync<IList<Auction>>(contentStream, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true, // Make property names case-insensitive
+                    Converters = { new JsonStringEnumConverter() } // Handle enum serialization/deserialization
+                });
+                if (auctions == null)
+                {
+                    loadingFlag = false;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("CATCH");
+            Console.WriteLine(ex);
+        }
+    }
+    
+    private async Task LoadAuctionsByName(string name)
+    {
+        try
+        {
+            var response = await Http.GetAsync($"/Auctions/{name}");
+            if (response.IsSuccessStatusCode)
+            {
+                var contentStream = await response.Content.ReadAsStreamAsync();
+                auctions = await JsonSerializer.DeserializeAsync<IList<Auction>>(contentStream, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true, // Make property names case-insensitive
+                    Converters = { new JsonStringEnumConverter() } // Handle enum serialization/deserialization
+                });
+                if (auctions == null)
+                {
+                    loadingFlag = false;
                 }
             }
         }
@@ -162,6 +238,37 @@
                 PropertyNameCaseInsensitive = true, // Make property names case-insensitive
                 Converters = { new JsonStringEnumConverter() } // Handle enum serialization/deserialization
             });
+        }
+    }
+    
+    private async Task FilterByCategory(string name)
+    {
+        if (name == "clear")
+        {
+            await LoadAllAuctions();
+        }
+        else
+        {
+            await LoadAuctionsByCategory(name);
+        }
+    }
+    
+    private async Task FilterByName(string clearFlag)
+    {
+        if (clearFlag == "clear")
+        {
+            await LoadAllAuctions();
+            searchFilterFlag = false;
+            searchPlaceholder = "Search";
+        }
+        else
+        {
+            if (searchFilter != string.Empty)
+            {
+                await LoadAuctionsByName(searchFilter);
+                searchFilterFlag = true;
+                searchPlaceholder = searchFilter;
+            }
         }
     }
 }

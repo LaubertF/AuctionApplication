@@ -51,6 +51,53 @@ public class AuctionController : ControllerBase
                 Winner = auction.Winner
             }).ToListAsync();
         
+        return auctions;
+    }
+    
+    [HttpGet]
+    [Route("/Auctions/Category/{name}")]
+    public async Task<IList<Auction>> GetByCategory(string name)
+    {
+        await _auctionService.CheckAuctionsForCompletion();
+        var auctions = await _context.Set<Auction>()
+            .Include(b=> b.ProductImages)
+            .Include(a => a.Owner)
+            .Select(auction => new Auction
+            {
+                Id = auction.Id,
+                NameOfProduct = auction.NameOfProduct,
+                Category = auction.Category,
+                StartingPrice = auction.StartingPrice,
+                ProductImages = auction.ProductImages,
+                Owner = auction.Owner,
+                IsClosed = auction.IsClosed,
+                Winner = auction.Winner
+            })
+            .Where(a => a.Category != null && a.Category.Name == name).ToListAsync();
+        
+        return auctions;
+    }
+    
+    [HttpGet]
+    [Route("/Auctions/{name}")]
+    public async Task<IList<Auction>> GetByName(string name)
+    {
+        await _auctionService.CheckAuctionsForCompletion();
+        var auctions = await _context.Set<Auction>()
+            .Include(b=> b.ProductImages)
+            .Include(a => a.Owner)
+            .Select(auction => new Auction
+            {
+                Id = auction.Id,
+                NameOfProduct = auction.NameOfProduct,
+                Category = auction.Category,
+                StartingPrice = auction.StartingPrice,
+                ProductImages = auction.ProductImages,
+                Owner = auction.Owner,
+                IsClosed = auction.IsClosed,
+                Winner = auction.Winner
+            })
+            .Where(a => a.NameOfProduct == name).ToListAsync();
         
         return auctions;
     }

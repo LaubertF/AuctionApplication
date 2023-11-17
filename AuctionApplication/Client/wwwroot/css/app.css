@@ -222,6 +222,32 @@ a, .btn-link {
     border-left-color: #0a58ca !important;
     border-top-color: #0a58ca !important;
 }
+.button-outline-danger{
+    transition: all 0.4s;
+    color: #fd0d0d !important;
+    border-right-width: 0.2rem !important;
+    border-bottom-width: 0.2rem !important;
+    border-left-width: 0.1rem !important;
+    border-top-width: 0.1rem !important;
+    background-color: #e8e8e8 !important;
+    border-bottom-color: #ca0a0a !important;
+    border-right-color: #ca0a0a !important;
+    border-left-color: #fd0d0d !important;
+    border-top-color: #fd0d0d !important;
+}
+.button-outline-danger:hover{
+    transform: scale(1.01);
+    color: #ffffff !important;
+    border-right-width: 0.1rem !important;
+    border-bottom-width: 0.1rem !important;
+    border-left-width: 0.2rem !important;
+    border-top-width: 0.2rem !important;
+    background-color: #fd0d0d !important;
+    border-bottom-color: #fd0d0d !important;
+    border-right-color: #fd0d0d !important;
+    border-left-color: #ca0a0a !important;
+    border-top-color: #ca0a0a !important;
+}
 .table-hover>tbody>tr{
     transition: all 0.4s;
 }
