@@ -102,7 +102,6 @@ public class AuctionController : ControllerBase
             }
 
             auction.Category = category;
-            auction.NameOfProduct = "default";
             return Ok(auction);
         }
         catch (Exception e)
