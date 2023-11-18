@@ -50,6 +50,22 @@ public class UserController : ControllerBase
         return Ok(user);
     }
     
+    [HttpPut]
+    [Route("/User/Current")]
+    public async Task<IActionResult> UpdateCurrentUser([FromBody] FullName fullName)
+    {
+        var currentUser = await _userService.GetUserByAuth0Id(User);
+        var user = await _context.Set<User>().FirstOrDefaultAsync(a => a.Auth0Id == currentUser.Auth0Id);
+        if (user == null)
+        {
+            return NotFound();
+        }
+        user.FirstName = fullName.firstName;
+        user.LastName = fullName.lastName;
+        await _context.SaveChangesAsync();
+        return Ok(user);
+    }
+    
     [HttpDelete]
     [Route("/Users/{id:int}")]
     public async Task<IActionResult> DeleteUserById(int id)
@@ -111,6 +127,15 @@ public class UserController : ControllerBase
     }
     
     [HttpGet]
+    [Route("/User")]
+    public async Task<OkObjectResult> GetCurrentUserInfo()
+    {
+        var currentUser = await _userService.GetUserByAuth0Id(User);
+        var user = await _context.Set<User>().FirstOrDefaultAsync(a => a.Auth0Id == currentUser.Auth0Id);
+        return Ok(user);
+    }
+    
+    [HttpGet]
     [Route("/Users/{id:int}/WonAuctions")]
     public async Task<IActionResult> GetWonAuctions(int id)
     {
@@ -142,4 +167,6 @@ public class UserController : ControllerBase
         }
 
     }
+
+    
 }

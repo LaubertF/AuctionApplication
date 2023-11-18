@@ -27,15 +27,17 @@
             <div class="card shadow">
                 <div class="card-body">
                     <h5 class="card-title fw-bold mb-4">User information</h5>
+                    <fieldset disabled>
+                        <label for="email">Email</label>
+                        <input type="text" class="form-control" id="email" placeholder="Email" value="@user.Name" required>
+                    </fieldset>
                     <label for="firstName">First name</label>
-                    <input type="text" class="form-control" id="firstName" placeholder="First name" value="Name" required>
+                    <input type="text" class="form-control" id="firstName" placeholder="First name" @bind="firstName" required>
                     <label for="lastName">Last name</label>
-                    <input type="text" class="form-control" id="lastName" placeholder="Last name" value="Surname" required>
-                    <label for="email">Email</label>
-                    <input type="text" class="form-control" id="email" placeholder="Email" value="Email" required>
+                    <input type="text" class="form-control" id="lastName" placeholder="Last name" @bind="lastName" required>
                 </div>
                 <div class="card-footer d-flex justify-content-center">
-                    <button class="btn-sm btn-outline-primary ms-2" type="submit">Submit</button>
+                    <button class="btn-sm btn-outline-primary ms-2" @onclick="@(e => SubmitForm(firstName, lastName))" >Submit</button>
                 </div>
             </div>
         </div>
@@ -90,16 +92,23 @@
 
 @code {
     private IList<WinsDto>? wins;
+    private User? user = new User();
+    private string? firstName;
+    private string? lastName;
     
     protected override async Task OnInitializedAsync()
+    {
+        await LoadUserInfo();
+        await LoadWins();
+    }
+
+    private async Task LoadWins()
     {
         try
         {
             var response = await Http.GetAsync("/User/Wins");
             if (response.IsSuccessStatusCode)
             {
-                var rawContent = await response.Content.ReadAsStringAsync();
-                Console.WriteLine(rawContent);
                 var contentStream = await response.Content.ReadAsStreamAsync();
                 wins = await JsonSerializer.DeserializeAsync<IList<WinsDto>>(contentStream, new JsonSerializerOptions
                 {
@@ -110,10 +119,44 @@
         }
         catch (Exception ex)
         {
-            Console.WriteLine("CATCH");
-            Console.WriteLine(ex);
+            Console.WriteLine("Wins exception");
         }
     }
+
+    private async Task LoadUserInfo()
+    {
+        try
+        {
+            var response = await Http.GetAsync("/User");
+            if (response.IsSuccessStatusCode)
+            {
+                var contentStream = await response.Content.ReadAsStreamAsync();
+                user = await JsonSerializer.DeserializeAsync<User>(contentStream, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true, // Make property names case-insensitive
+                    Converters = { new JsonStringEnumConverter() } // Handle enum serialization/deserialization
+                });
+            }
+            firstName = user.FirstName;
+            lastName = user.LastName;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Wins exception");
+        }
+    }
+
+    private async Task SubmitForm(string nameFirst, string nameLast)
+    {
+        var response = await Http.PutAsJsonAsync("/User/Current",new FullName(nameFirst, nameLast));
+        if (response.IsSuccessStatusCode)
+        {
+            appState.ToastMessage = "User information has been changed";
+            appState.ToastType = "success";
+        }
+        await LoadUserInfo();
+    }
+
 
     private void CloseAppState(AppStateService toast)
     {
