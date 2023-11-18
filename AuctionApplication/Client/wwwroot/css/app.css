@@ -222,6 +222,7 @@ a, .btn-link {
     border-left-color: #0a58ca !important;
     border-top-color: #0a58ca !important;
 }
+
 .button-outline-danger{
     transition: all 0.4s;
     color: #fd0d0d !important;

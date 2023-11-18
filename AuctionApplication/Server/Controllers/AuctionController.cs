@@ -51,6 +51,10 @@ public class AuctionController : ControllerBase
                 Winner = auction.Winner
             }).ToListAsync();
         
+        foreach (var auction in auctions)
+        {
+            auction.StartingPrice = await _auctionService.GetMinBidValueForAuctionAsync(auction.Id);
+        }
         return auctions;
     }
     
@@ -74,7 +78,11 @@ public class AuctionController : ControllerBase
                 Winner = auction.Winner
             })
             .Where(a => a.Category != null && a.Category.Name == name).ToListAsync();
-        
+
+        foreach (var auction in auctions)
+        {
+            auction.StartingPrice = await _auctionService.GetMinBidValueForAuctionAsync(auction.Id);
+        }
         return auctions;
     }
     
@@ -99,6 +107,10 @@ public class AuctionController : ControllerBase
             })
             .Where(a => a.NameOfProduct == name).ToListAsync();
         
+        foreach (var auction in auctions)
+        {
+            auction.StartingPrice = await _auctionService.GetMinBidValueForAuctionAsync(auction.Id);
+        }
         return auctions;
     }
     

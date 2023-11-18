@@ -2,6 +2,7 @@
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
 @using System.Text.Json
 @using System.Text.Json.Serialization
+@using AuctionApplication.Shared
 @inject AppStateService appState
 @attribute [Authorize]
 @page "/profile"
@@ -52,16 +53,23 @@
                             </tr>
                         </thead>
                         <tbody>
-                        @if (auctions != null)
+                        @if (wins != null)
                         {
-                            @foreach (var auction in auctions)
+                            @foreach (var win in wins)
                             {
                                 <tr>
-                                    <td><a class="link-dark" href="/auction/detail/@auction.Id">@auction.NameOfProduct</a></td>
-                                    <td>@auction.StartingPrice</td>
-                                    <td><i class="bi bi-x-circle icon-red"></i></td>
-                                    @* <td><i class="bi bi-check-circle icon-green"></i></td> *@
-                                    <td><a class="btn btn-sm btn-warning button-round ms-2" type="submit" href="/auction/detail/@auction.Id/payment">Pay</a></td>
+                                    <td><a class="link-dark" href="/auction/detail/@win.AuctionId">@win.NameOfProduct</a></td>
+                                    <td>@win.Value</td>
+                                    @if (@win.State == PaymentState.New)
+                                    {
+                                        <td><i class="bi bi-x-circle icon-red"></i></td>
+                                        <td><a class="btn btn-sm btn-warning button-round ms-2" type="submit" href="/auction/detail/@win.AuctionId/payment">Pay</a></td>
+                                    }
+                                    else
+                                    {
+                                        <td><i class="bi bi-check-circle icon-green"></i></td>
+                                        <td></td>
+                                    }
                                 </tr>
                             }
                         }
@@ -81,7 +89,7 @@
 
 
 @code {
-    private IList<AuctionApplication.Shared.Auction>? auctions;
+    private IList<WinsDto>? wins;
     
     protected override async Task OnInitializedAsync()
     {
@@ -90,12 +98,10 @@
             var response = await Http.GetAsync("/User/Wins");
             if (response.IsSuccessStatusCode)
             {
-                var contentStream = await response.Content.ReadAsStreamAsync();
-                
                 var rawContent = await response.Content.ReadAsStringAsync();
                 Console.WriteLine(rawContent);
-                
-                auctions = await JsonSerializer.DeserializeAsync<IList<AuctionApplication.Shared.Auction>>(contentStream, new JsonSerializerOptions
+                var contentStream = await response.Content.ReadAsStreamAsync();
+                wins = await JsonSerializer.DeserializeAsync<IList<WinsDto>>(contentStream, new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true, // Make property names case-insensitive
                     Converters = { new JsonStringEnumConverter() } // Handle enum serialization/deserialization

@@ -11,12 +11,14 @@ namespace AuctionApplication.Server.Controllers;
 public class UserController : ControllerBase
 {
     private readonly UserService _userService;
+    private readonly AuctionService _auctionService;
     private readonly DbContext _context;
 
-    public UserController(DbContext context, UserService userService)
+    public UserController(DbContext context, UserService userService, AuctionService auctionService)
     {
         _context = context;
         _userService = userService;
+        _auctionService = auctionService;
     }
     
     
@@ -66,6 +68,7 @@ public class UserController : ControllerBase
     [Route("/User/Wins")]
     public async Task<IActionResult> GetWins()
     {
+        IList<WinsDto> winsDtos = new List<WinsDto>();
         var currentUser = await _userService.GetUserByAuth0Id(User);
         var user = await _context.Set<User>().FirstOrDefaultAsync(a => a.Auth0Id == currentUser.Auth0Id);
         if (user == null)
@@ -77,14 +80,34 @@ public class UserController : ControllerBase
             {
                 Id = auction.Id,
                 NameOfProduct = auction.NameOfProduct,
-                Category = auction.Category,
-                StartingPrice = auction.StartingPrice,
-                ProductImages = auction.ProductImages,
-                Owner = auction.Owner,
-                Winner = auction.Winner
+                Winner = auction.Winner,
+                PaymentId = auction.PaymentId
             })
             .Where(a => a.Winner != null && a.Winner.Auth0Id == user.Auth0Id).ToListAsync();
-        return Ok(auctions);
+
+        foreach (var auction in auctions)
+        {
+            WinsDto win = new WinsDto();
+            var onePayment = await _context.Set<Payment>()
+                .Select(payment => new Payment()
+                {
+                    Id = payment.Id,
+                    Value = payment.Value,
+                    State = payment.State
+                })
+                .Where(a => a.Id == auction.PaymentId)
+                .FirstAsync();
+            
+            // Create obj. winsDto
+            win.AuctionId = auction.Id;
+            win.NameOfProduct = auction.NameOfProduct;
+            win.Value = onePayment.Value;
+            win.State = onePayment.State;
+            
+            // Add obj. to the list
+            winsDtos.Add(win);
+        }
+        return Ok(winsDtos);
     }
     
     [HttpGet]
