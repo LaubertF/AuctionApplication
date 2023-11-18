@@ -1,7 +1,145 @@
 ﻿@page "/admin/users"
+@using AuctionApplication.Shared
+@using AuctionApplication.Client.Services
+@using System.Text.Json
+@using System.Text.Json.Serialization
+@inject HttpClient Http
+@inject IJSRuntime JSRuntime
 @attribute [Authorize(Roles = "Admin")]
+
+@foreach (Toast toast in toasts)
+{
+    @if (toast.Show == "page")
+    {
+        <div class="d-flex justify-content-center alert alert-@toast.Type alert-dismissible fade show" role="alert">
+            @toast.Message
+            <button type="button" class="btn-close" @onclick="() => CloseToast(toast)"></button>
+        </div>
+    }
+}
+
+
 <h3>Users</h3>
 
+<DatabaseAlert/>
+
+<div class="table-responsive">
+    <table class="table table-sm">
+        <thead>
+        <tr>
+            <th scope="col">Email</th>
+            <th scope="col">First name</th>
+            <th scope="col">Last name</th>
+            <th scope="col"></th>
+        </tr>
+        </thead>
+        <tbody>
+
+
+        @foreach (var user in users)
+        {
+            <tr>
+                <td>
+                    <span>@user.Name</span>
+                </td>
+                <td>
+                    <span>@user.FirstName</span>
+                </td>
+                <td>
+                    <span>@user.LastName</span>
+                </td>
+                <td>
+                    <div class="p-1">
+                        <button class="btn btn-sm btn-danger" @onclick="() => SetDeleteUser(user)"
+                                data-bs-toggle="modal" data-bs-target="#deleteUser">Delete</button>
+                    </div>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
+
+<div class="modal fade" id="deleteUser" tabindex="-1" aria-labelledby="deleteUserLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="deleteUserLabel">Delete category</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                @foreach (Toast toast in toasts)
+                {
+                    @if (toast.Show == "modal")
+                    {
+                        <div class="d-flex justify-content-center alert alert-@toast.Type alert-dismissible fade show" role="alert">
+                            @toast.Message
+                            <button type="button" class="btn-close" @onclick="() => CloseToast(toast)"></button>
+                        </div>
+                    }
+                }
+                <div>
+                    Are you sure you want to delete user <b>@deleteUser.Name</b>?
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-primary" @onclick="() => DeleteUser(deleteUser.Id)">Delete user</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @code {
-    
+    private List<Toast> toasts = new List<Toast>();
+    private IList<UserDto> users = new List<UserDto>();
+    private UserDto deleteUser = new UserDto();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUsers();
+    }
+
+    private void CloseToast(Toast toast)
+    {
+        toasts.Remove(toast);
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LoadUsers()
+    {
+        var response = await Http.GetAsync($"/Users");
+        var content = await response.Content.ReadAsStringAsync();
+
+        if (response.IsSuccessStatusCode)
+        {
+            users = JsonSerializer.Deserialize<List<UserDto>>(content, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true, // Make property names case-insensitive
+                Converters = { new JsonStringEnumConverter() } // Handle enum serialization/deserialization
+            });
+        }
+    }
+
+    private async Task SetDeleteUser(UserDto user)
+    {
+        deleteUser = user;
+    }
+
+    private async Task DeleteUser(int userId)
+    {
+    var response = await Http.DeleteAsync($"/Users/{userId}");
+    var content = await response.Content.ReadAsStringAsync();
+    if (response.IsSuccessStatusCode)
+    {
+        toasts.Add(new Toast { Type = "success", Show = "page", Message = "User was successfully deleted" });
+        await LoadUsers();
+        await JSRuntime.InvokeVoidAsync("closeModal", "deleteUser");
+    }
+    else
+    {
+        toasts.Add(new Toast { Type = "danger", Show = "modal", Message = content });
+    }
+    }
+
 }

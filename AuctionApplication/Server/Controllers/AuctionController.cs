@@ -5,6 +5,7 @@ using AuctionApplication.Database;
 using AuctionApplication.Server.Business;
 using AuctionApplication.Server.Hubs;
 using AuctionApplication.Shared;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
@@ -117,6 +118,7 @@ public class AuctionController : ControllerBase
         IList<Auction> auctions = new List<Auction>();
         auctions = await _context.Set<Auction>()
             .Include(a => a.Owner)
+            .Include(a => a.Winner)
             .Include(a => a.Category)
             .ToListAsync();
         IList<AuctionDto> auctionDtos = auctions.Select(auction => new AuctionDto
@@ -129,7 +131,7 @@ public class AuctionController : ControllerBase
             EndInclusive = auction.EndInclusive,
             StartingPrice = auction.StartingPrice,
             BuyoutPrice = auction.BuyoutPrice,
-            OwnerName = auction.Owner?.Name,
+            OwnerName = auction.Owner.Name,
             WinnerName = auction.Winner?.Name,
             IsClosed = auction.IsClosed
         }).ToList();
@@ -389,7 +391,7 @@ public class AuctionController : ControllerBase
         }
         catch (Exception e)
         {
-            return NotFound($"Payment was not successfull");
+            return BadRequest($"Payment was not successfull");
         }
 
         return Ok(payment);
@@ -397,6 +399,7 @@ public class AuctionController : ControllerBase
     
     [HttpDelete]
     [Route("/Auctions/{id:int}")]
+    [Authorize(Policy = "RequireAdministratorRole")]
     public async Task<IActionResult> DeleteAuction(int id)
     {
 
@@ -411,6 +414,7 @@ public class AuctionController : ControllerBase
     
     [HttpPut]
     [Route("/Auctions/{id:int}")]
+    [Authorize(Policy = "RequireAdministratorRole")]
     public async Task<IActionResult> UpdateAuction(int id, [FromBody] Auction auction)
     {
         var requester = await _userService.GetUserByAuth0Id(User);
@@ -453,6 +457,7 @@ public class AuctionController : ControllerBase
     
     [HttpGet]
     [Route("/Auctions/Categories/{name}")]
+    [Authorize(Policy = "RequireAdministratorRole")]
     public async Task<IActionResult> GetCategory(string name)
     {
         var category = await _context.Set<AuctionCategory>().FirstOrDefaultAsync(c => c.Name == name);
@@ -462,8 +467,14 @@ public class AuctionController : ControllerBase
     
     [HttpPost]
     [Route("/Auctions/Categories")]
+    [Authorize(Policy = "RequireAdministratorRole")]
     public async Task<IActionResult> CreateCategory([FromBody] AuctionCategory category)
     {
+        bool categoryExist = await _context.Set<AuctionCategory>().AnyAsync(c => c.Name == category.Name);
+        if (categoryExist)
+        {
+            return BadRequest($"Category with that name already exists.");  
+        }
         await _context.Set<AuctionCategory>().AddAsync(category);
         await _context.SaveChangesAsync();
         return Ok();
@@ -472,6 +483,7 @@ public class AuctionController : ControllerBase
     
     [HttpDelete]
     [Route("/Auctions/Categories/{name}")]
+    [Authorize(Policy = "RequireAdministratorRole")]
     public async Task<IActionResult> DeleteCategory(string name)
     {
         var category = await _context.Set<AuctionCategory>().FirstOrDefaultAsync(c => c.Name == name);

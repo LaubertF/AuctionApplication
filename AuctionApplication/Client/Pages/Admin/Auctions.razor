@@ -5,6 +5,7 @@
 @using System.Text.Json.Serialization
 @attribute [Authorize(Roles = "Admin")]
 @inject HttpClient Http
+@inject IJSRuntime JSRuntime
 
 
 
@@ -21,6 +22,8 @@
 
 
 <h3>Auctions</h3>
+
+<DatabaseAlert/>
 
 <div class="table-responsive">
     <table class="table table-sm">
@@ -75,19 +78,50 @@
                 <td>@auction.IsClosed</td>
                 <td>@auction.OwnerName</td>
                 <td>@auction.WinnerName</td>
-                <th scope="row">
+                <td>
                     <div class="p-1">
                         <button class="btn btn-sm btn-primary" @onclick="() => EditAuction(auction)">Modify</button>
                     </div>
                     <div class="p-1">
-                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteAuction(auction)">Delete</button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => SetDeleteAuction(auction)"
+                                data-bs-toggle="modal" data-bs-target="#deleteAuction">Delete</button>
                     </div>
 
-                </th>
+                </td>
             </tr>
         }
         </tbody>
     </table>
+</div>
+
+<div class="modal fade" id="deleteAuction" tabindex="-1" aria-labelledby="deleteAuctionLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="deleteAuctionLabel">Delete auction</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                @foreach (Toast toast in toasts)
+                {
+                    @if (toast.Show == "modal")
+                    {
+                        <div class="d-flex justify-content-center alert alert-@toast.Type alert-dismissible fade show" role="alert">
+                            @toast.Message
+                            <button type="button" class="btn-close" @onclick="() => CloseToast(toast)"></button>
+                        </div>
+                    }
+                }
+                <div>
+                    Are you sure you want to delete auction <b>@auctionDelete.Title</b>?
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-primary" @onclick="() => DeleteAuction(auctionDelete)">Delete auction</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 
@@ -95,6 +129,7 @@
     private IList<AuctionDto> auctions = new List<AuctionDto>();
     private List<AuctionCategory> categories = new List<AuctionCategory>();
     private List<Toast> toasts = new List<Toast>();
+    private AuctionDto auctionDelete = new AuctionDto();
 
     protected override async Task OnInitializedAsync()
     {
@@ -132,6 +167,11 @@
         }
     }
 
+    private async Task SetDeleteAuction(AuctionDto auction)
+    {
+        auctionDelete = auction;
+    }
+
     private async Task DeleteAuction(AuctionDto auction)
     {
         var response = await Http.DeleteAsync($"/Auctions/{auction.Id}");
@@ -140,6 +180,7 @@
         {
             toasts.Add(new Toast { Type = "success", Show = "page", Message = "Auction was successfully deleted" });
             await LoadAuctions();
+            await JSRuntime.InvokeVoidAsync("closeModal", "deleteUser");
         }
         else
         {

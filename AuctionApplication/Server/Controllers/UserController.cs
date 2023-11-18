@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 using AuctionApplication.Server.Business;
 using AuctionApplication.Shared;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -24,9 +25,18 @@ public class UserController : ControllerBase
     
     [HttpGet]
     [Route("/Users")]
-    public async Task<IList<User>> Get()
+    [Authorize(Policy = "RequireAdministratorRole")]
+    public async Task<IList<UserDto>> Get()
     {
-        return await _context.Set<User>().ToListAsync();
+        List<User> users = await _context.Set<User>().ToListAsync();
+        List<UserDto> userDtos = users.Select(user => new UserDto
+        {
+            Id = user.Id,
+            Name =  user.Name,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+        }).ToList();
+        return userDtos;
     }
     
     [HttpGet]
@@ -68,12 +78,18 @@ public class UserController : ControllerBase
     
     [HttpDelete]
     [Route("/Users/{id:int}")]
+    [Authorize(Policy = "RequireAdministratorRole")]
     public async Task<IActionResult> DeleteUserById(int id)
     {
         var user = await _context.Set<User>().FirstOrDefaultAsync(a => a.Id == id);
         if (user == null)
         {
             return NotFound();
+        }
+        var owner = await _userService.GetUserByAuth0Id(User);
+        if (user == owner)
+        {
+            return BadRequest($"You cannot remove your own account");
         }
         _context.Set<User>().Remove(user);
         await _context.SaveChangesAsync();

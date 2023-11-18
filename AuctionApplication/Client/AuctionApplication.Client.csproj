@@ -21,4 +21,8 @@
     <ItemGroup>
       <Folder Include="wwwroot\images\" />
     </ItemGroup>
+
+    <ItemGroup>
+      <_ContentIncludedByDefault Remove="Components\DatabaseAlert.razor" />
+    </ItemGroup>
 </Project>
