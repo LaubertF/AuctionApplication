@@ -205,7 +205,7 @@
     {
         try
         {
-            var response = await Http.GetAsync($"/Auctions/{name}");
+            var response = await Http.GetAsync($"/Auctions/Name/{name}");
             if (response.IsSuccessStatusCode)
             {
                 var contentStream = await response.Content.ReadAsStreamAsync();

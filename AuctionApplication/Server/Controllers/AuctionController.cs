@@ -86,7 +86,7 @@ public class AuctionController : ControllerBase
     }
     
     [HttpGet]
-    [Route("/Auctions/{name}")]
+    [Route("/Auctions/Name/{name}")]
     public async Task<IList<Auction>> GetByName(string name)
     {
         await _auctionService.CheckAuctionsForCompletion();
@@ -102,7 +102,7 @@ public class AuctionController : ControllerBase
                 IsClosed = auction.IsClosed,
                 Winner = auction.Winner
             })
-            .Where(a => a.NameOfProduct == name && a.IsClosed == false).ToListAsync();
+            .Where(a =>  EF.Functions.Like(a.NameOfProduct, $"%{name}%") && a.IsClosed == false).ToListAsync();
         
         foreach (var auction in auctions)
         {
