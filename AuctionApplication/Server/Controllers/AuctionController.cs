@@ -37,8 +37,6 @@ public class AuctionController : ControllerBase
     {
         await _auctionService.CheckAuctionsForCompletion();
         var auctions = await _context.Set<Auction>()
-            .Include(b=> b.ProductImages)
-            .Include(a => a.Owner)
             .Select(auction => new Auction
             {
                 Id = auction.Id,
@@ -49,7 +47,9 @@ public class AuctionController : ControllerBase
                 Owner = auction.Owner,
                 IsClosed = auction.IsClosed,
                 Winner = auction.Winner
-            }).ToListAsync();
+            })
+            .Where(a => a.IsClosed == false)
+            .ToListAsync();
         
         foreach (var auction in auctions)
         {
@@ -64,8 +64,6 @@ public class AuctionController : ControllerBase
     {
         await _auctionService.CheckAuctionsForCompletion();
         var auctions = await _context.Set<Auction>()
-            .Include(b=> b.ProductImages)
-            .Include(a => a.Owner)
             .Select(auction => new Auction
             {
                 Id = auction.Id,
@@ -77,7 +75,7 @@ public class AuctionController : ControllerBase
                 IsClosed = auction.IsClosed,
                 Winner = auction.Winner
             })
-            .Where(a => a.Category != null && a.Category.Name == name).ToListAsync();
+            .Where(a => a.Category != null && a.Category.Name == name && a.IsClosed == false).ToListAsync();
 
         foreach (var auction in auctions)
         {
@@ -92,8 +90,6 @@ public class AuctionController : ControllerBase
     {
         await _auctionService.CheckAuctionsForCompletion();
         var auctions = await _context.Set<Auction>()
-            .Include(b=> b.ProductImages)
-            .Include(a => a.Owner)
             .Select(auction => new Auction
             {
                 Id = auction.Id,
@@ -105,7 +101,7 @@ public class AuctionController : ControllerBase
                 IsClosed = auction.IsClosed,
                 Winner = auction.Winner
             })
-            .Where(a => a.NameOfProduct == name).ToListAsync();
+            .Where(a => a.NameOfProduct == name && a.IsClosed == false).ToListAsync();
         
         foreach (var auction in auctions)
         {

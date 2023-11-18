@@ -197,7 +197,6 @@ a, .btn-link {
     vertical-align: middle;
 }
 .button-outline{
-    transition: all 0.4s;
     color:#0d6efd !important;
     border-right-width: 0.2rem !important;
     border-bottom-width: 0.2rem !important;
@@ -210,7 +209,6 @@ a, .btn-link {
     border-top-color: #0d6efd !important;
 }
 .button-outline:hover{
-    transform: scale(1.01);
     color: #ffffff !important;
     border-right-width: 0.1rem !important;
     border-bottom-width: 0.1rem !important;
@@ -237,7 +235,6 @@ a, .btn-link {
     border-top-color: #fd0d0d !important;
 }
 .button-outline-danger:hover{
-    transform: scale(1.01);
     color: #ffffff !important;
     border-right-width: 0.1rem !important;
     border-bottom-width: 0.1rem !important;
