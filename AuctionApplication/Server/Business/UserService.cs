@@ -32,20 +32,4 @@ public class UserService
         await _userRepository.AddAsync(newUser);
         return newUser;
     }
-
-    public async Task<List<Payment>> GetPayments(User user)
-    {
-        return await _context.Set<Payment>().Where(p => p.User == user).ToListAsync();
-    }
-
-    public async Task<List<Auction>> GetOwnedAuctions(User user)
-    {
-        return await _context.Set<Auction>().Where(p => p.Owner == user).ToListAsync();
-    }
-
-    public async Task<List<Auction>> GetWonAuctions(User user)
-    {
-        return await _context.Set<Auction>().Where(p => p.Winner == user).ToListAsync();
-    }
-    
 }
