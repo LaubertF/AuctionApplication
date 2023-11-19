@@ -269,3 +269,11 @@ a, .btn-link {
     color: #11ad11 !important;
 }
 
+.card-head-active {
+    background-color: #eeffe5 !important;
+}
+
+.card-head-inactive {
+    background-color: #dadada !important;
+}
+

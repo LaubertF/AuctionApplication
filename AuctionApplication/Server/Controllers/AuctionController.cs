@@ -34,8 +34,9 @@ public class AuctionController : ControllerBase
     
     [HttpGet]
     [Route("/Auctions")]
-    public async Task<IList<Auction>> Get()
+    public async Task<IList<AuctionStatusDto>> Get()
     {
+        IList<AuctionStatusDto> auctionDtos = new List<AuctionStatusDto>();
         await _auctionService.CheckAuctionsForCompletion();
         var auctions = await _context.Set<Auction>()
             .Select(auction => new Auction
@@ -45,6 +46,8 @@ public class AuctionController : ControllerBase
                 Category = auction.Category,
                 StartingPrice = auction.StartingPrice,
                 ProductImages = auction.ProductImages,
+                StartInclusive = auction.StartInclusive,
+                EndInclusive = auction.EndInclusive,
                 Owner = auction.Owner,
                 IsClosed = auction.IsClosed,
                 Winner = auction.Winner
@@ -56,13 +59,45 @@ public class AuctionController : ControllerBase
         {
             auction.StartingPrice = await _auctionService.GetMinBidValueForAuctionAsync(auction.Id);
         }
-        return auctions;
+        
+        foreach (var auction in auctions)
+        {
+            AuctionStatusDto auctionDto = new AuctionStatusDto();
+
+            auctionDto.Id = auction.Id;
+            auctionDto.NameOfProduct = auction.NameOfProduct;
+            auctionDto.Category = auction.Category;
+            auctionDto.StartingPrice = auction.StartingPrice;
+            auctionDto.ProductImages = auction.ProductImages;
+            auctionDto.StartInclusive = auction.StartInclusive;
+            auctionDto.EndInclusive = auction.EndInclusive;
+            auctionDto.Owner = auction.Owner;
+            auctionDto.IsClosed = auction.IsClosed;
+            auctionDto.Winner = auction.Winner;
+
+            var now = DateTime.Now;
+            if (auction.IsClosed)
+            {
+                auctionDto.State = AuctionState.Ended;
+            } 
+            else if (auctionDto.StartInclusive > now)
+            {
+                auctionDto.State = AuctionState.NotActive;
+            } 
+            else if (auction.StartInclusive <= now)
+            {
+                auctionDto.State = AuctionState.Active;
+            }
+            auctionDtos.Add(auctionDto);
+        }
+        return auctionDtos;
     }
     
     [HttpGet]
     [Route("/Auctions/Category/{name}")]
-    public async Task<IList<Auction>> GetByCategory(string name)
+    public async Task<IList<AuctionStatusDto>> GetByCategory(string name)
     {
+        IList<AuctionStatusDto> auctionDtos = new List<AuctionStatusDto>();
         await _auctionService.CheckAuctionsForCompletion();
         var auctions = await _context.Set<Auction>()
             .Select(auction => new Auction
@@ -72,6 +107,8 @@ public class AuctionController : ControllerBase
                 Category = auction.Category,
                 StartingPrice = auction.StartingPrice,
                 ProductImages = auction.ProductImages,
+                StartInclusive = auction.StartInclusive,
+                EndInclusive = auction.EndInclusive,
                 Owner = auction.Owner,
                 IsClosed = auction.IsClosed,
                 Winner = auction.Winner
@@ -82,13 +119,45 @@ public class AuctionController : ControllerBase
         {
             auction.StartingPrice = await _auctionService.GetMinBidValueForAuctionAsync(auction.Id);
         }
-        return auctions;
+        
+        foreach (var auction in auctions)
+        {
+            AuctionStatusDto auctionDto = new AuctionStatusDto();
+
+            auctionDto.Id = auction.Id;
+            auctionDto.NameOfProduct = auction.NameOfProduct;
+            auctionDto.Category = auction.Category;
+            auctionDto.StartingPrice = auction.StartingPrice;
+            auctionDto.ProductImages = auction.ProductImages;
+            auctionDto.StartInclusive = auction.StartInclusive;
+            auctionDto.EndInclusive = auction.EndInclusive;
+            auctionDto.Owner = auction.Owner;
+            auctionDto.IsClosed = auction.IsClosed;
+            auctionDto.Winner = auction.Winner;
+
+            var now = DateTime.Now;
+            if (auction.IsClosed)
+            {
+                auctionDto.State = AuctionState.Ended;
+            } 
+            else if (auctionDto.StartInclusive > now)
+            {
+                auctionDto.State = AuctionState.NotActive;
+            } 
+            else if (auction.StartInclusive <= now)
+            {
+                auctionDto.State = AuctionState.Active;
+            }
+            auctionDtos.Add(auctionDto);
+        }
+        return auctionDtos;
     }
     
     [HttpGet]
     [Route("/Auctions/Name/{name}")]
-    public async Task<IList<Auction>> GetByName(string name)
+    public async Task<IList<AuctionStatusDto>> GetByName(string name)
     {
+        IList<AuctionStatusDto> auctionDtos = new List<AuctionStatusDto>();
         await _auctionService.CheckAuctionsForCompletion();
         var auctions = await _context.Set<Auction>()
             .Select(auction => new Auction
@@ -98,6 +167,8 @@ public class AuctionController : ControllerBase
                 Category = auction.Category,
                 StartingPrice = auction.StartingPrice,
                 ProductImages = auction.ProductImages,
+                StartInclusive = auction.StartInclusive,
+                EndInclusive = auction.EndInclusive,
                 Owner = auction.Owner,
                 IsClosed = auction.IsClosed,
                 Winner = auction.Winner
@@ -108,7 +179,37 @@ public class AuctionController : ControllerBase
         {
             auction.StartingPrice = await _auctionService.GetMinBidValueForAuctionAsync(auction.Id);
         }
-        return auctions;
+        foreach (var auction in auctions)
+        {
+            AuctionStatusDto auctionDto = new AuctionStatusDto();
+
+            auctionDto.Id = auction.Id;
+            auctionDto.NameOfProduct = auction.NameOfProduct;
+            auctionDto.Category = auction.Category;
+            auctionDto.StartingPrice = auction.StartingPrice;
+            auctionDto.ProductImages = auction.ProductImages;
+            auctionDto.StartInclusive = auction.StartInclusive;
+            auctionDto.EndInclusive = auction.EndInclusive;
+            auctionDto.Owner = auction.Owner;
+            auctionDto.IsClosed = auction.IsClosed;
+            auctionDto.Winner = auction.Winner;
+
+            var now = DateTime.Now;
+            if (auction.IsClosed)
+            {
+                auctionDto.State = AuctionState.Ended;
+            } 
+            else if (auctionDto.StartInclusive > now)
+            {
+                auctionDto.State = AuctionState.NotActive;
+            } 
+            else if (auction.StartInclusive <= now)
+            {
+                auctionDto.State = AuctionState.Active;
+            }
+            auctionDtos.Add(auctionDto);
+        }
+        return auctionDtos;
     }
     
     [HttpGet]

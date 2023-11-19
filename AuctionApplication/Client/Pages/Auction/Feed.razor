@@ -60,10 +60,18 @@
                     noAuctionsCounter++;
                     <div class="col-12 col-md-6 col-xl-3">
                         <div class="card shadow">
-                            
-                            <div class="card-header text-center justify-content-center align-items-center">
-                                <h6 class="card-title fw-bold"><i class="bi bi-clock-history mx-2"></i>15:23:02</h6>
-                            </div>
+                            @if (auction.State == AuctionState.Active)
+                            {
+                                <div class="card-header text-center justify-content-center align-items-center">
+                                    <span class="badge rounded-pill text-bg-success">Active</span>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="card-header card-head-inactive text-center justify-content-center align-items-center">
+                                    <span class="badge rounded-pill text-bg-secondary">Not Active</span>
+                                </div>
+                            }
 
                             @if (auction.ProductImages.Count == 0)
                             {
@@ -133,7 +141,7 @@
 
 
 @code {
-    private IList<Auction>? auctions;
+    private IList<AuctionStatusDto>? auctions;
     List<AuctionCategory>? categories = new List<AuctionCategory>();
     bool loadingFlag = true;
     int noAuctionsCounter = 0;
@@ -156,7 +164,7 @@
             {
                 var contentStream = await response.Content.ReadAsStreamAsync();
     // var rawContent = await response.Content.ReadAsStringAsync();
-                auctions = await JsonSerializer.DeserializeAsync<IList<Auction>>(contentStream, new JsonSerializerOptions
+                auctions = await JsonSerializer.DeserializeAsync<IList<AuctionStatusDto>>(contentStream, new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true, // Make property names case-insensitive
                     Converters = { new JsonStringEnumConverter() } // Handle enum serialization/deserialization
@@ -182,7 +190,7 @@
             if (response.IsSuccessStatusCode)
             {
                 var contentStream = await response.Content.ReadAsStreamAsync();
-                auctions = await JsonSerializer.DeserializeAsync<IList<Auction>>(contentStream, new JsonSerializerOptions
+                auctions = await JsonSerializer.DeserializeAsync<IList<AuctionStatusDto>>(contentStream, new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true, // Make property names case-insensitive
                     Converters = { new JsonStringEnumConverter() } // Handle enum serialization/deserialization
@@ -208,7 +216,7 @@
             if (response.IsSuccessStatusCode)
             {
                 var contentStream = await response.Content.ReadAsStreamAsync();
-                auctions = await JsonSerializer.DeserializeAsync<IList<Auction>>(contentStream, new JsonSerializerOptions
+                auctions = await JsonSerializer.DeserializeAsync<IList<AuctionStatusDto>>(contentStream, new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true, // Make property names case-insensitive
                     Converters = { new JsonStringEnumConverter() } // Handle enum serialization/deserialization
