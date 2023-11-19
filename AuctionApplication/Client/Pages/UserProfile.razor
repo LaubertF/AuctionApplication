@@ -3,6 +3,7 @@
 @using System.Text.Json
 @using System.Text.Json.Serialization
 @using AuctionApplication.Shared
+@using AuctionApplication.Client.Services
 @inject AppStateService appState
 @attribute [Authorize]
 @page "/profile"
@@ -26,7 +27,7 @@
         <div class="col-12 col-lg-4">
             <div class="card shadow">
                 <div class="card-body">
-                    <h5 class="card-title fw-bold mb-4">User information</h5>
+                    <h5 class="card-title fw-bold mb-4">My information</h5>
                     <fieldset disabled>
                         <label for="email">Email</label>
                         <input type="text" class="form-control" id="email" placeholder="Email" value="@user.Name" required>
@@ -38,6 +39,52 @@
                 </div>
                 <div class="card-footer d-flex justify-content-center">
                     <button class="btn-sm btn-outline-primary ms-2" @onclick="@(e => SubmitForm(firstName, lastName))" >Submit</button>
+                </div>
+            </div>
+            <div class="card shadow mt-5">
+                <div class="card-body">
+                    <h5 class="card-title fw-bold mb-4">My Auctions</h5>
+                    <table class="table table-hover align-middle">
+                        <thead>
+                        <tr>
+                            <th scope="col">Auction</th>
+                            <th scope="col">Status</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        @if (ownedAuctions != null)
+                        {
+                            @foreach (var ownedAuction in ownedAuctions)
+                            {
+                                myAuctionCounter++;
+                                <tr>
+                                    <td><a class="link-dark" href="/auction/detail/@ownedAuction.Id">@ownedAuction.NameOfProduct</a></td>
+                                    @if (!@ownedAuction.IsClosed)
+                                    {
+                                        <td><span class="badge rounded-pill bg-primary">Ongoing</span></td>
+                                    }
+                                    else
+                                    {
+                                        <td><span class="badge rounded-pill bg-secondary">Finished</span></td>
+                                    }
+                                </tr>
+                            }
+                            if (myAuctionCounter == 0)
+                            {
+                                <h6 class="mb-4">You haven't created any auction!</h6>
+                            }
+                        }
+                        else if (myAuctionsLoading)
+                        {
+                            <h6 class="mb-4">Loading auctions...</h6>
+                        }
+                        else
+                        {
+                            <h6 class="mb-4">You haven't created any auction!</h6>
+                        }
+                        
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -59,6 +106,7 @@
                         {
                             @foreach (var win in wins)
                             {
+                                winsCounter++;
                                 <tr>
                                     <td><a class="link-dark" href="/auction/detail/@win.AuctionId">@win.NameOfProduct</a></td>
                                     <td>@win.Value</td>
@@ -74,10 +122,18 @@
                                     }
                                 </tr>
                             }
+                            if (winsCounter == 0)
+                            {
+                                <h6 class="mb-4">You haven't won an auction yet!</h6>
+                            }
+                        }
+                        else if (winsLoading)
+                        {
+                            <h6 class="mb-4">Loading auctions...</h6>
                         }
                         else
                         {
-                            <h6 class="mb-4">You haven't won anything yet!</h6>
+                            <h6 class="mb-4">You haven't won an auction yet!</h6>
                         }
                         
                         </tbody>
@@ -92,14 +148,20 @@
 
 @code {
     private IList<WinsDto>? wins;
+    private IList<AuctionApplication.Shared.Auction>? ownedAuctions;
     private User? user = new User();
     private string? firstName;
     private string? lastName;
+    private bool winsLoading = true;
+    private int winsCounter = 0;
+    private bool myAuctionsLoading = true;
+    private int myAuctionCounter = 0;
     
     protected override async Task OnInitializedAsync()
     {
         await LoadUserInfo();
         await LoadWins();
+        await LoadMyAuctions();
     }
 
     private async Task LoadWins()
@@ -116,6 +178,7 @@
                     Converters = { new JsonStringEnumConverter() } // Handle enum serialization/deserialization
                 });
             }
+            winsLoading = false;
         }
         catch (Exception ex)
         {
@@ -143,6 +206,28 @@
         catch (Exception ex)
         {
             Console.WriteLine("Wins exception");
+        }
+    }
+    
+    private async Task LoadMyAuctions()
+    {
+        try
+        {
+            var response = await Http.GetAsync("/User/Owner");
+            if (response.IsSuccessStatusCode)
+            {
+                var contentStream = await response.Content.ReadAsStreamAsync();
+                ownedAuctions = await JsonSerializer.DeserializeAsync<IList<AuctionApplication.Shared.Auction>>(contentStream, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true, // Make property names case-insensitive
+                    Converters = { new JsonStringEnumConverter() } // Handle enum serialization/deserialization
+                });
+            }
+            myAuctionsLoading = false;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Owned Auctions exception");
         }
     }
 

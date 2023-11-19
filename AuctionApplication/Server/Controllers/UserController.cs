@@ -143,6 +143,29 @@ public class UserController : ControllerBase
     }
     
     [HttpGet]
+    [Route("/User/Owner")]
+    public async Task<IActionResult> GetOwnedAuctions()
+    {
+        var currentUser = await _userService.GetUserByAuth0Id(User);
+        var user = await _context.Set<User>().FirstOrDefaultAsync(a => a.Auth0Id == currentUser.Auth0Id);
+        if (user == null)
+        {
+            return NotFound();
+        }
+        var auctions = await _context.Set<Auction>()
+            .Select(auction => new Auction
+            {
+                Id = auction.Id,
+                NameOfProduct = auction.NameOfProduct,
+                Owner = auction.Owner,
+                IsClosed = auction.IsClosed
+            })
+            .Where(a => a.Owner.Auth0Id == user.Auth0Id).ToListAsync();
+        
+        return Ok(auctions);
+    }
+    
+    [HttpGet]
     [Route("/User")]
     public async Task<OkObjectResult> GetCurrentUserInfo()
     {

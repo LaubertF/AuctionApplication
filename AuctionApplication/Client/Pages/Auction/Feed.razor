@@ -52,7 +52,6 @@
     
     @if (auctions != null)
     {
-        
         <div class="row g-5">
             @foreach (var auction in auctions)
             {
@@ -123,7 +122,7 @@
     }
     else if (loadingFlag)
     {
-        <h6 class="card-title fw-bold mb-4">Loading...</h6>
+        <h6 class="card-title fw-bold mb-4">Loading in auctions...</h6>
     }
     else if (auctions == null && !loadingFlag)
     {
@@ -140,7 +139,7 @@
     int noAuctionsCounter = 0;
     string searchFilter = string.Empty;
     bool searchFilterFlag = false;
-    string searchPlaceholder = "Search";
+    string searchPlaceholder = "Search by name";
 
     protected override async Task OnInitializedAsync()
     {
@@ -259,7 +258,7 @@
         {
             await LoadAllAuctions();
             searchFilterFlag = false;
-            searchPlaceholder = "Search";
+            searchPlaceholder = "Search by name";
         }
         else
         {
@@ -267,7 +266,6 @@
             {
                 await LoadAuctionsByName(searchFilter);
                 searchFilterFlag = true;
-                searchPlaceholder = searchFilter;
             }
         }
     }
