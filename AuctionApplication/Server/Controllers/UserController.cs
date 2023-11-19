@@ -12,14 +12,12 @@ namespace AuctionApplication.Server.Controllers;
 public class UserController : ControllerBase
 {
     private readonly UserService _userService;
-    private readonly AuctionService _auctionService;
     private readonly DbContext _context;
 
     public UserController(DbContext context, UserService userService, AuctionService auctionService)
     {
         _context = context;
         _userService = userService;
-        _auctionService = auctionService;
     }
     
     
