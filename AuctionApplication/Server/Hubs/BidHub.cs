@@ -1,6 +1,7 @@
 using AuctionApplication.Shared;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Radzen;
 
 namespace AuctionApplication.Server.Hubs;
 
@@ -60,4 +61,7 @@ public class BidHub : Hub
 
         await Clients.Caller.SendAsync("ReceiveBids", bidList);
     }
+    
+    
+    
 }

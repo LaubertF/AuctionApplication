@@ -268,7 +268,9 @@ a, .btn-link {
 .icon-green {
     color: #11ad11 !important;
 }
-
+.list-group-item-transparent{
+    
+}
 .card-head-active {
     background-color: #eeffe5 !important;
 }

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using AuctionApplication.Client;
 using AuctionApplication.Client.Services;
 using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
+using Radzen;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -18,6 +19,8 @@ builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>()
 builder.Services.AddScoped<AppStateService>();
 builder.Services.AddScoped(typeof(AccountClaimsPrincipalFactory<RemoteUserAccount>),
     typeof(CustomAccountFactory));
+
+builder.Services.AddScoped<NotificationService>();
 builder.Services.AddOidcAuthentication(options =>
 {
     builder.Configuration.Bind("Auth0", options.ProviderOptions);

@@ -76,27 +76,27 @@
                 <div class="row py-1">
                     <div class="d-flex justify-content-start">
                         <ul class="list-group list-group-flush">
-                            <li class="list-group-item">
+                            <li class="list-group-item bg-transparent">
                                 <span class="fw-bold">Status:</span>
                                 <span class="badge rounded-pill text-bg-@status.Color">@status.Title</span>
                             </li>
                             @if (auction.IsClosed == false && timeDifference != null)
                             {
-                                <li class="list-group-item">
+                                <li class="list-group-item bg-transparent">
                                     <span>
                                         <span class="fw-bold">@status.TimerTitle</span> @FormatTimeDifference(timeDifference)
                                     </span>
                                 </li>
                             }
-                            <li class="list-group-item">
+                            <li class="list-group-item bg-transparent">
                                 <span class="fw-bold">Created by: </span>
                                 <span class="fw-lighter">@auction.Owner.Name</span>
                             </li>
-                            <li class="list-group-item">
+                            <li class="list-group-item bg-transparent">
                                 <span class="fw-bold">Category: </span>
                                 <span class="fw-lighter">@auction.Category.Name</span>
                             </li>
-                            <li class="list-group-item">
+                            <li class="list-group-item bg-transparent">
                                 <div class="fw-bold">Description: </div>
                                 <div class="fw-lighter">@auction.Description</div>
                             </li>
@@ -120,22 +120,22 @@
                         <div class="tab-content" id="pills-tabContent">
                             <div class="tab-pane fade show active" id="pills-detail" role="tabpanel" aria-labelledby="pills-detail-tab" tabindex="0">
                                 <ul class="list-group list-group-flush">
-                                    <li class="list-group-item">
+                                    <li class="list-group-item bg-transparent">
                                         <span class="fw-bold">Start: </span>@auction.StartInclusive
                                     </li>
-                                    <li class="list-group-item">
+                                    <li class="list-group-item bg-transparent">
                                         <span class="fw-bold">End: </span>@auction.EndInclusive
                                     </li>
                                     @if (auction.IsClosed == false)
                                     {
-                                        <li class="list-group-item">
+                                        <li class="list-group-item bg-transparent">
                                             <span class="fw-bold">Minimal bid: </span>@auction.StartingPrice €
                                         </li>
                                     }
 
                                     @if (auction.IsClosed == true && auction.Winner != null)
                                     {
-                                        <li class="list-group-item">
+                                        <li class="list-group-item bg-transparent">
                                             <span class="fw-bold">Winner: </span>@auction.Winner.Name
                                         </li>
                                     }
@@ -145,7 +145,7 @@
                                 <ul class="list-group list-group-flush" id="bid-list-group">
                                     @foreach (var bid in bidList)
                                     {
-                                        <li class="list-group-item">@bid</li>
+                                        <li class="list-group-item bg-transparent">@bid</li>
                                     }
                                 </ul>
                             </div>
@@ -251,7 +251,6 @@
     public int id { get; set; }
 
     public Bid? detailBid = new Bid();
-
     private Auction? auction;
     private string currentTime;
     private TimeDifference? timeDifference;
@@ -259,6 +258,7 @@
     private HubConnection? hubConnection;
     private List<MarkupString> bidList = new List<MarkupString>();
     private List<Toast> toasts = new List<Toast>();
+    private string connectionId;
 
     protected override async Task OnInitializedAsync()
     {
@@ -303,7 +303,8 @@
             .WithUrl(NavigationManager.ToAbsoluteUri("/chathub"))
             .Build();
 
-        hubConnection.On<BidDto>("SendBid", (bidData) =>
+        
+        hubConnection.On<BidDto>("SendBidNotification", (bidData) =>
         {
             if (bidData.AuctionId == id)
             {
@@ -314,6 +315,7 @@
                 InvokeAsync(StateHasChanged);
             }
         });
+
         hubConnection.On<List<BidDto>>("ReceiveBids", (bids) =>
         {
             var i = 0;

@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Radzen;
 
 namespace AuctionApplication.Server.Controllers;
 
@@ -328,7 +329,9 @@ public class AuctionController : ControllerBase
     [Route("/Auctions/{id:int}/Bid")]
     public async Task<IActionResult> BidOnAuction(int id, [FromBody] decimal value)
     {
-        var auction = await _context.Set<Auction>().FirstOrDefaultAsync(a => a.Id == id);
+        var auction = await _context.Set<Auction>()
+            .Include(a => a.Owner)
+            .FirstOrDefaultAsync(a => a.Id == id);
         if (auction == null) return NotFound();
         var user = await _userService.GetUserByAuth0Id(User);
 
@@ -361,6 +364,9 @@ public class AuctionController : ControllerBase
             Time = DateTime.Now,
         };
         await _hubContext.Clients.All.SendAsync("SendBid", bidData);
+        _auctionService.SendNotification(_hubContext, auction.Owner.Id.ToString(),"Bid Notification",
+            $"Someone bid {value}€ on your auction item '{auction.NameOfProduct}'.");
+
         return Ok(newBid);
     }
 
@@ -368,7 +374,9 @@ public class AuctionController : ControllerBase
     [Route("/Auctions/{id:int}/Buyout")]
     public async Task<IActionResult> BuyoutOnAuction(int id, [FromBody] decimal value)
     {
-        var auction = await _context.Set<Auction>().FirstOrDefaultAsync(a => a.Id == id);
+        var auction = await _context.Set<Auction>()
+            .Include(a => a.Owner)
+            .FirstOrDefaultAsync(a => a.Id == id);
         if (auction == null) return NotFound();
         if (auction.IsClosed == true)
         {
@@ -397,6 +405,8 @@ public class AuctionController : ControllerBase
 
             await _context.Set<Payment>().AddAsync(payment);
             await _context.SaveChangesAsync();
+            _auctionService.SendNotification(_hubContext, auction.Owner.Id.ToString(), "Buyout Notification",
+                $"Someone bought your auction item '{auction.NameOfProduct}' for {value}€.");
         }
         catch (Exception e)
         {

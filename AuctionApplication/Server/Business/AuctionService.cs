@@ -1,5 +1,8 @@
-﻿using AuctionApplication.Shared;
+﻿using AuctionApplication.Server.Hubs;
+using AuctionApplication.Shared;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Radzen;
 
 namespace AuctionApplication.Server.Business;
 
@@ -64,5 +67,19 @@ public class AuctionService
         _context.Set<Payment>().Add(payment);
         _context.SaveChanges();
         return true;
+    }
+
+
+    public async void SendNotification(IHubContext<BidHub> context, string connectionId, string summary, string message)
+    {
+
+        var notificationMessage = new NotificationMessage
+        {
+            Severity = NotificationSeverity.Info,
+            Summary = summary,
+            Detail = message,
+            Duration = 15000
+        };
+        await context.Clients.All.SendAsync("ReceiveAuctionNotification", connectionId, notificationMessage);
     }
 }

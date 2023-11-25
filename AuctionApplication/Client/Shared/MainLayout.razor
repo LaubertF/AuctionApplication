@@ -1,5 +1,13 @@
 ﻿@inherits LayoutComponentBase
 
+@inject NotificationService NotificationService
+@using Microsoft.AspNetCore.SignalR.Client
+@inject HttpClient Http
+@using System.Text.Json.Serialization
+@using AuctionApplication.Shared
+@using System.Text.Json
+@inject NavigationManager NavigationManager
+
 <div class="page">
     <div class="sidebar">
         <NavMenu/>
@@ -16,3 +24,55 @@
         </article>
     </main>
 </div>
+<RadzenNotification />
+
+@code {
+    private User user = new User();
+    private string connectionId;
+
+    protected override void OnInitialized()
+    {
+        InitConnection();
+    }
+
+    private async Task InitConnection()
+    {
+        Console.WriteLine($"InitConnection");
+        var response = await Http.GetAsync($"/User");
+        var content = await response.Content.ReadAsStringAsync();
+
+        if (response.IsSuccessStatusCode)
+        {
+            SetupSignalR();
+            user = JsonSerializer.Deserialize<User>(content, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true, // Make property names case-insensitive
+                Converters = { new JsonStringEnumConverter() } // Handle enum serialization/deserialization
+            });
+            connectionId = user.Id.ToString();
+            Console.WriteLine($"InitConnection {connectionId}");
+        }
+        
+    }
+
+    private async void SetupSignalR()
+    {
+        var hubConnection = new HubConnectionBuilder()
+            .WithUrl(NavigationManager.ToAbsoluteUri("/chathub"))
+            .Build();
+
+
+        hubConnection.On<string, NotificationMessage>("ReceiveAuctionNotification", (receiveConnectionId, message) =>
+        {
+            Console.WriteLine(message.Summary);
+            if (receiveConnectionId == connectionId)
+            {
+                NotificationService.Notify(message);
+            }
+        });
+        
+        
+        await hubConnection.StartAsync();
+        
+    }
+}
